@@ -28,7 +28,7 @@
 <aside
   transition:slide={{ axis: 'x', duration: 200 }}
   class="w-56 shrink-0 flex flex-col gap-3 py-3 overflow-y-auto"
-  style="border-radius: 0 0 0 var(--radius-xl); background: var(--surface-sidebar); backdrop-filter: var(--backdrop-blur); -webkit-backdrop-filter: var(--backdrop-blur); scrollbar-width: none;"
+  style="border-radius: var(--radius-lg); background: var(--surface-sidebar); backdrop-filter: var(--backdrop-blur); -webkit-backdrop-filter: var(--backdrop-blur); border: 1px solid oklch(0.35 0 0 / 0.15); scrollbar-width: none;"
 >
   <!-- Navigation -->
   <section class="px-2">

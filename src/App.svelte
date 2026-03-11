@@ -102,10 +102,10 @@
 
 <svelte:window onkeydown={handleKeydown} />
 
-<div data-theme="dracula" class="h-screen w-screen flex flex-col overflow-hidden bg-base-100 text-base-content" style="border-radius: {isMaximized ? '0' : 'var(--radius-sm)'}; transition: border-radius 150ms ease;">
+<div data-theme="dracula" class="h-screen w-screen flex flex-col overflow-hidden bg-base-100 text-base-content" style="border-radius: {isMaximized ? '0' : 'var(--radius-lg)'}; transition: border-radius 150ms ease;">
   <Titlebar onToggleSidebar={() => (sidebarOpen = !sidebarOpen)} {isMaximized} />
 
-  <div class="flex flex-1 min-h-0">
+  <div class="flex flex-1 min-h-0 p-2 gap-2">
     {#if sidebarOpen}
       <Sidebar
         devices={store.devices}

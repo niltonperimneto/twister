@@ -19,7 +19,7 @@
 <header
   data-tauri-drag-region
   class="flex items-center justify-between min-h-10 h-10 px-4 select-none shrink-0 border-b border-base-content/5"
-  style="border-radius: {isMaximized ? '0' : 'var(--radius-sm) var(--radius-sm) 0 0'}; background: var(--surface-titlebar); backdrop-filter: var(--backdrop-blur); -webkit-backdrop-filter: var(--backdrop-blur); transition: border-radius 150ms ease;"
+  style="border-radius: {isMaximized ? '0' : 'var(--radius-lg) var(--radius-lg) 0 0'}; background: var(--surface-titlebar); backdrop-filter: var(--backdrop-blur); -webkit-backdrop-filter: var(--backdrop-blur); transition: border-radius 150ms ease;"
 >
   <!-- Left: hamburger -->
   <div class="flex items-center">
