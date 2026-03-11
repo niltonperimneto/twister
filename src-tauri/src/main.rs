@@ -1,4 +1,4 @@
-/* AuraRatbag – Tauri v2 application entry point.
+/* Twister – Tauri v2 application entry point.
  *
  * Initialises tracing, registers Tauri IPC commands, and hands control to
  * the Tauri event loop.  The Rust backend owns all system-bus communication
@@ -14,13 +14,13 @@ fn main() {
     tracing_subscriber::fmt()
         .with_env_filter(
             tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "aura_ratbag=info".into()),
+                .unwrap_or_else(|_| "twister=info".into()),
         )
         .init();
 
-    tracing::info!("Starting AuraRatbag");
+    tracing::info!("Starting Twister");
 
-    tauri::Builder::default()
+    if let Err(e) = tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
         .manage(DaemonState::default())
         .invoke_handler(tauri::generate_handler![
@@ -41,5 +41,8 @@ fn main() {
             commands::detect_surface_mode,
         ])
         .run(tauri::generate_context!())
-        .expect("error while running AuraRatbag");
+    {
+        tracing::error!("Twister exited with error: {e:#}");
+        std::process::exit(1);
+    }
 }

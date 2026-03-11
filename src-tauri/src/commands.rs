@@ -49,7 +49,10 @@ pub async fn connect_daemon(
     let client_result = RatbagClient::connect().await;
     match client_result {
         Ok(client) => {
-            let api_version = client.api_version().await.unwrap_or(-1);
+            let api_version = client.api_version().await.unwrap_or_else(|e| {
+                warn!("Failed to read ratbagd API version, defaulting to -1: {e:#}");
+                -1
+            });
             info!("Connected to ratbagd, API version: {api_version}");
 
             /* Spawn the background D-Bus signal watcher */

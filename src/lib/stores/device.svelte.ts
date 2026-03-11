@@ -52,10 +52,10 @@ class DeviceStore {
   async init(): Promise<void> {
     this.loading = true;
     this.error = null;
-    console.log('[aura] init() starting');
+    console.log('[twister] init() starting');
     try {
       const status = await connectDaemon();
-      console.log('[aura] connectDaemon result:', JSON.stringify(status));
+      console.log('[twister] connectDaemon result:', JSON.stringify(status));
 
       if (status.status === 'connected') {
         this.daemonStatus = status;
@@ -68,11 +68,11 @@ class DeviceStore {
         let devList = await listDevices();
         const delays = [1000, 1000, 2000, 2000, 4000, 4000, 8000, 8000];
         for (let attempt = 0; devList.length === 0 && attempt < delays.length; attempt++) {
-          console.log(`[aura] 0 devices, retry ${attempt + 1}/${delays.length}…`);
+          console.log(`[twister] 0 devices, retry ${attempt + 1}/${delays.length}…`);
           await new Promise((r) => setTimeout(r, delays[attempt]));
           devList = await listDevices();
         }
-        console.log('[aura] listDevices result:', JSON.stringify(devList));
+        console.log('[twister] listDevices result:', JSON.stringify(devList));
 
         this.devices = devList;
 
@@ -92,10 +92,10 @@ class DeviceStore {
               if (hasCaps) {
                 loaded.push({ summary: s, dto });
               } else {
-                console.warn(`[aura] Filtering ghost device ${s.path} (0 capabilities)`);
+                console.warn(`[twister] Filtering ghost device ${s.path} (0 capabilities)`);
               }
             } catch (e) {
-              console.warn(`[aura] Skipping ${s.path}: ${e}`);
+              console.warn(`[twister] Skipping ${s.path}: ${e}`);
             }
           }
 
@@ -108,7 +108,7 @@ class DeviceStore {
             this.activeProfileIndex =
               loaded[0].dto.profiles.find((p) => p.is_active)?.index ?? 0;
             console.log(
-              '[aura] selectDevice done:',
+              '[twister] selectDevice done:',
               this.activeDevice.name,
               'profile:',
               this.activeProfileIndex,
@@ -119,13 +119,13 @@ class DeviceStore {
         this.daemonStatus = status;
       }
     } catch (e) {
-      console.error('[aura] init() error:', e);
+      console.error('[twister] init() error:', e);
       this.error = String(e);
       this.daemonStatus = { status: 'disconnected', reason: String(e) };
     } finally {
       this.loading = false;
       console.log(
-        '[aura] init() done, daemonStatus:', JSON.stringify(this.daemonStatus),
+        '[twister] init() done, daemonStatus:', JSON.stringify(this.daemonStatus),
         'devices:', this.devices.length,
       );
     }
@@ -133,7 +133,7 @@ class DeviceStore {
     /* Subscribe to push events from the D-Bus signal watcher */
     if (this.isConnected && !this.unlistenResync) {
       listen('ratbag:resync', () => {
-        console.log('[aura] ratbag:resync event received, refreshing…');
+        console.log('[twister] ratbag:resync event received, refreshing…');
         this.refresh();
       }).then((unlisten) => {
         this.unlistenResync = unlisten;
@@ -160,9 +160,9 @@ class DeviceStore {
       this.activeDevicePath = path;
       this.activeDevice = await getDevice(path);
       this.activeProfileIndex = this.activeDevice.profiles.find((p) => p.is_active)?.index ?? 0;
-      console.log('[aura] selectDevice done:', this.activeDevice.name, 'profile:', this.activeProfileIndex);
+      console.log('[twister] selectDevice done:', this.activeDevice.name, 'profile:', this.activeProfileIndex);
     } catch (e) {
-      console.error('[aura] selectDevice error:', e);
+      console.error('[twister] selectDevice error:', e);
       this.error = String(e);
       this.activeDevice = null;
     } finally {

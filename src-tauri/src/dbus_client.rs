@@ -356,7 +356,8 @@ impl RatbagClient {
         let inner: Value<'_> = val.into();
         match inner {
             Value::U32(v) => Ok(v),
-            Value::I32(v) => Ok(v as u32),
+            Value::I32(v) => u32::try_from(v)
+                .map_err(|_| anyhow!("Negative i32 ({v}) cannot convert to u32 for {iface}.{prop}")),
             _ => Err(anyhow!("Expected u32 for {iface}.{prop}")),
         }
     }
@@ -366,7 +367,8 @@ impl RatbagClient {
         let inner: Value<'_> = val.into();
         match inner {
             Value::I32(v) => Ok(v),
-            Value::U32(v) => Ok(v as i32),
+            Value::U32(v) => i32::try_from(v)
+                .map_err(|_| anyhow!("u32 ({v}) exceeds i32 range for {iface}.{prop}")),
             _ => Err(anyhow!("Expected i32 for {iface}.{prop}")),
         }
     }
