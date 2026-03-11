@@ -2,16 +2,16 @@
 name = "twister"
 version = "0.1.0"
 edition = "2024"
-description = "AuraRatbag – high-performance GUI for libratbag mouse configuration"
+description = "Twister — desktop-agnostic gaming mouse configuration GUI for Linux"
 license = "GPL-3.0-or-later"
 authors = ["Nilton Perim Neto <niltonperimneto@gmail.com>"]
 
 [lib]
-name = "aura_ratbag_lib"
+name = "twister_lib"
 crate-type = ["lib", "cdylib", "staticlib"]
 
 [[bin]]
-name = "aura-ratbag"
+name = "twister"
 path = "src/main.rs"
 
 [dependencies]
