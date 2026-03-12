@@ -1,7 +1,7 @@
 <!-- Button Mapping editor -->
 <script lang="ts">
   import type { ProfileDto, ButtonDto, ActionValueDto } from '$lib/types';
-  import { ACTION_TYPES } from '$lib/types';
+  import { ACTION_TYPES, COMMON_BUTTONS, SPECIAL_ACTIONS } from '$lib/types';
   import { setButtonMapping } from '$lib/ipc/commands';
   import { addToast } from '$lib/stores/toast.svelte';
 
@@ -19,19 +19,8 @@
   let editActionType: number = $state(1);
   let editValue: string = $state('');
 
-  /** Map standard button indices to human-readable names. */
-  const BUTTON_LABELS: Record<number, string> = {
-    1: 'Left Click',
-    2: 'Right Click',
-    3: 'Middle Click',
-    4: 'Scroll Up',
-    5: 'Scroll Down',
-    8: 'Back',
-    9: 'Forward',
-  };
-
   function buttonLabel(index: number): string {
-    return BUTTON_LABELS[index] ?? `Button ${index}`;
+    return COMMON_BUTTONS[index] ?? `Button ${index}`;
   }
 
   $effect(() => {
@@ -47,8 +36,8 @@
     const v = btn.action_value;
     switch (v.kind) {
       case 'none':    return 'None';
-      case 'button':  return `Button ${v.button}`;
-      case 'special': return `Special ${v.special}`;
+      case 'button':  return COMMON_BUTTONS[v.button] ?? `Button ${v.button}`;
+      case 'special': return SPECIAL_ACTIONS[v.special] ?? `Special ${v.special}`;
       case 'key':     return `Key ${v.keycode}`;
       case 'macro':   return `Macro (${v.entries.length} steps)`;
       case 'unknown': return 'Unknown';
@@ -63,10 +52,14 @@
               : btn.action_value.kind === 'key'    ? String(btn.action_value.keycode)
               : btn.action_value.kind === 'special' ? String(btn.action_value.special)
               : '';
+    macroEntries = btn.action_value.kind === 'macro' ? [...btn.action_value.entries] : [];
     onSvgSelect(`button${btn.index}`);
   }
 
-  function cancelEdit() { editIdx = null; }
+  function cancelEdit() {
+    stopMacroRecord();
+    editIdx = null;
+  }
 
   async function applyEdit() {
     const btn = profile.buttons.find(b => b.index === editIdx);
@@ -80,10 +73,7 @@
       case 1:  value = { kind: 'button', button: n }; break;
       case 2:  value = { kind: 'special', special: n }; break;
       case 3:  value = { kind: 'key', keycode: n }; break;
-      case 4:  value = btn.action_value.kind === 'macro'
-                  ? btn.action_value
-                  : { kind: 'macro', entries: [] };
-               break;
+      case 4:  value = { kind: 'macro', entries: [...macroEntries] }; break;
       default: value = { kind: 'unknown' }; break;
     }
 
@@ -92,9 +82,52 @@
       onUpdated();
     } catch (e) {
       console.error('Button mapping failed:', e);
-      addToast('Button mapping failed — check daemon connection');
+      addToast('Button mapping failed. Check daemon connection');
     }
+    stopMacroRecord();
     editIdx = null;
+  }
+
+  /* ── Macro recording ───────────────────────────────────── */
+
+  let macroEntries: [number, number][] = $state([]);
+  let macroRecording: boolean = $state(false);
+  let keydownHandler: ((e: KeyboardEvent) => void) | null = null;
+
+  function toggleMacroRecord() {
+    if (macroRecording) {
+      stopMacroRecord();
+    } else {
+      startMacroRecord();
+    }
+  }
+
+  function startMacroRecord() {
+    macroRecording = true;
+    keydownHandler = (e: KeyboardEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      /* Store as [keycode, 0] — the second element is a placeholder
+       * for key-up delay (ms), matching the ActionValueDto spec. */
+      macroEntries = [...macroEntries, [e.keyCode, 0]];
+    };
+    window.addEventListener('keydown', keydownHandler, true);
+  }
+
+  function stopMacroRecord() {
+    macroRecording = false;
+    if (keydownHandler) {
+      window.removeEventListener('keydown', keydownHandler, true);
+      keydownHandler = null;
+    }
+  }
+
+  function clearMacro() {
+    macroEntries = [];
+  }
+
+  function removeMacroEntry(index: number) {
+    macroEntries = macroEntries.filter((_, i) => i !== index);
   }
 </script>
 
@@ -113,7 +146,7 @@
             {btn.index}
           </span>
           <div class="min-w-0">
-            <div class="text-sm truncate">{buttonLabel(btn.index)} — {formatAction(btn)}</div>
+            <div class="text-sm truncate">{buttonLabel(btn.index)}: {formatAction(btn)}</div>
             <div class="text-[10px] text-base-content/30">
               {ACTION_TYPES[btn.action_type] ?? 'Unknown'}
             </div>
@@ -131,28 +164,95 @@
       </div>
 
       {#if isEditing}
-        <div class="flex flex-wrap items-center gap-2 pt-2 border-t border-base-300/20">
-          <select
-            bind:value={editActionType}
-            class="select select-bordered select-xs bg-base-300/30 border-base-300/40 text-xs"
-          >
-            {#each btn.action_types as at (at)}
-              <option value={at}>{ACTION_TYPES[at] ?? `Type ${at}`}</option>
-            {/each}
-          </select>
+        <div class="flex flex-col gap-3 pt-2 border-t border-base-300/20">
+          <!-- Action-type pill toggles -->
+          <div class="flex flex-col gap-1.5">
+            <span class="text-[10px] uppercase tracking-widest text-base-content/30 font-semibold">Action Type</span>
+            <div class="pill-group">
+              {#each btn.action_types as at (at)}
+                <button
+                  class="pill-btn {editActionType === at ? 'pill-btn-active' : ''}"
+                  onclick={() => { editActionType = at; editValue = ''; }}
+                >
+                  {ACTION_TYPES[at] ?? `Type ${at}`}
+                </button>
+              {/each}
+            </div>
+          </div>
 
-          {#if editActionType !== 0 && editActionType !== 4}
-            <input
-              type="number"
-              bind:value={editValue}
-              class="input input-bordered input-xs w-20 font-mono bg-base-300/30 border-base-300/40"
-              min="0"
-            />
-          {/if}
+          <!-- Value selectors based on active type -->
+          <div class="flex flex-wrap items-center gap-2">
+            {#if editActionType === 1}
+              <select
+                bind:value={editValue}
+                class="select select-bordered select-xs bg-base-300/30 border-base-300/40 text-xs w-36"
+              >
+                <option value="" disabled>Select button</option>
+                {#each Object.entries(COMMON_BUTTONS) as [id, label]}
+                  <option value={id}>{label}</option>
+                {/each}
+              </select>
+            {:else if editActionType === 2}
+              <select
+                bind:value={editValue}
+                class="select select-bordered select-xs bg-base-300/30 border-base-300/40 text-xs w-48"
+              >
+                <option value="" disabled>Select action</option>
+                {#each Object.entries(SPECIAL_ACTIONS) as [id, label]}
+                  <option value={id}>{label}</option>
+                {/each}
+              </select>
+            {:else if editActionType === 3}
+              <input
+                type="number"
+                bind:value={editValue}
+                class="input input-bordered input-xs w-20 font-mono bg-base-300/30 border-base-300/40"
+                min="0"
+                placeholder="Keycode"
+              />
+            {/if}
 
-          {#if editActionType === 4}
-            <span class="text-[11px] text-base-content/35 italic">Macro editing not yet supported</span>
-          {/if}
+            {#if editActionType === 4}
+              <!-- Macro recorder (frosted glass) -->
+              <div class="macro-recorder w-full">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-[10px] uppercase tracking-widest text-base-content/30 font-semibold">Macro Recorder</span>
+                  <div class="flex gap-1">
+                    <button
+                      class="pill-btn text-[11px] {macroRecording ? 'pill-btn-active' : ''}"
+                      onclick={toggleMacroRecord}
+                    >
+                      {macroRecording ? '⏹ Stop' : '⏺ Record'}
+                    </button>
+                    <button
+                      class="pill-btn text-[11px]"
+                      onclick={clearMacro}
+                    >
+                      Clear
+                    </button>
+                  </div>
+                </div>
+
+                {#if macroEntries.length === 0}
+                  <p class="text-[11px] text-base-content/30 italic text-center py-3">
+                    {macroRecording ? 'Press keys to record…' : 'Click Record and press keys'}
+                  </p>
+                {:else}
+                  <div class="macro-entries">
+                    {#each macroEntries as entry, i (i)}
+                      <div class="macro-entry">
+                        <span class="text-xs font-mono text-base-content/60">{entry[0]}</span>
+                        <button
+                          class="text-[10px] text-base-content/25 hover:text-red-400 transition-colors"
+                          onclick={() => removeMacroEntry(i)}
+                        >✕</button>
+                      </div>
+                    {/each}
+                  </div>
+                {/if}
+              </div>
+            {/if}
+          </div>
 
           <div class="flex gap-1 ml-auto">
             <button onclick={applyEdit} class="pill-btn pill-btn-active text-[11px]">Apply</button>

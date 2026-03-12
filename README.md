@@ -1,4 +1,4 @@
-# Twister
+99;6u99;6u# Twister
 
 **Twister** is a modern, desktop-agnostic graphical interface for configuring gaming mice on Linux.
 
@@ -7,7 +7,7 @@ a ground-up rewrite of the [libratbag](https://github.com/libratbag/libratbag) `
 in memory-safe Rust. Twister communicates with `ratbagd` or `ratbagd-rs` over the
 `org.freedesktop.ratbag1` D-Bus interface.
 
-![Twister interface showing a Logitech G403 Hero](public/screenshot.png)
+![Twister](public/animation.gif)
 
 > **Status:** Active development — early alpha. Core features work. Building and packaging are not yet
 > automated. Contributions welcome!
@@ -22,11 +22,9 @@ Piper is functional but carries limitations that motivated this project:
 
 | Concern | Piper | Twister |
 |---|---|---|
-| **Toolkit** | GTK 3 | WebKitGTK (Tauri 2) |
+| **Toolkit** | GTK 3 | Tauri 2 |
 | **Language** | Python 3 | Rust + TypeScript (Svelte 5) |
 | **DE dependency** | GNOME preferred | Desktop-agnostic |
-| **Backend** | libratbag C daemon | ratbagd-rs (Rust, safe) |
-| **Memory safety** | C daemon | Rust daemon + Rust shell |
 
 Twister works on any Linux desktop — GNOME, KDE Plasma, Sway, Hyprland, i3, or a bare window
 manager — with no compositor plugins, Shell extensions, or GTK theme configuration required.
@@ -58,7 +56,12 @@ manager — with no compositor plugins, Shell extensions, or GTK theme configura
 
 ## Screenshots
 
-> Screenshots will be added once the project reaches a stable alpha release.
+![Welcome Screen](public/screenshot_1.png)
+
+![overview](public/screenshot_2.png)
+
+![colour](public/screenshot_4)
+
 
 ---
 

@@ -11,7 +11,7 @@
   let { onNavigate }: Props = $props();
 </script>
 
-<div class="relative flex-1 flex flex-col items-center overflow-y-auto p-8">
+<div class="relative flex-1 flex flex-col items-center overflow-y-auto p-8" in:fade={{ duration: 250 }} out:fade={{ duration: 150 }}>
   <!-- Animated background orbs — subtle ambient glow -->
   <div class="absolute inset-0 z-0 pointer-events-none overflow-hidden">
     <div class="absolute left-1/4 top-1/4 w-[320px] h-[320px] rounded-full bg-primary/10 blur-[100px] animate-aura-spin origin-bottom-right"></div>
@@ -30,10 +30,11 @@
         Welcome to Twister
       </h1>
       <p class="text-sm text-base-content/60 leading-relaxed text-center max-w-sm" in:fade={{ duration: 500, delay: 200 }}>
-        A desktop-agnostic GUI for Linux gaming mice — built on
-        <span class="font-semibold text-base-content/80">libratbag-rs</span>,
-        a ground-up rewrite of the configuration stack in
-        <span class="font-semibold text-base-content/80">memory-safe Rust</span>.
+        A desktop agnostic GUI for Linux gaming mice. Built on top of the
+        <span class="font-semibold text-base-content/80">ratbagd</span> D-Bus protocol,
+        Twister maintains full backwards compatibility with the original C 
+        <span class="font-semibold text-base-content/80">libratbag</span>, however, we strive to replace it with 
+        <span class="font-semibold text-base-content/80">libratbag-rs</span>: a safer, faster Rust implementation.
       </p>
     </div>
 
@@ -50,7 +51,7 @@
           </div>
           <div>
             <p class="text-sm font-medium">Rewritten in Rust</p>
-            <p class="text-xs text-base-content/40">libratbag-rs replaces the legacy C daemon with memory-safe, fearlessly concurrent code — no more undefined behavior or fragile pointer chains.</p>
+            <p class="text-xs text-base-content/40">libratbag-rs is replacing the legacy C daemon with memory safe, fearlessly concurrent code, making undefined behavior and fragile pointer chains a thing of the past.</p>
           </div>
         </div>
 
@@ -62,7 +63,7 @@
           </div>
           <div>
             <p class="text-sm font-medium">Desktop Agnostic</p>
-            <p class="text-xs text-base-content/40">Works on any Linux desktop — GNOME, KDE, Sway, or bare WM. No GNOME Shell extensions or KDE widgets required.</p>
+            <p class="text-xs text-base-content/40">Works on any Linux desktop, including GNOME, KDE, Sway, and bare window managers. No GNOME Shell extensions or KDE widgets required.</p>
           </div>
         </div>
 
@@ -74,7 +75,7 @@
           </div>
           <div>
             <p class="text-sm font-medium">Modern D-Bus Protocol</p>
-            <p class="text-xs text-base-content/40">Communicates with hardware via the standardized ratbagd D-Bus interface — the same protocol used by the broader libratbag ecosystem.</p>
+            <p class="text-xs text-base-content/40">Twister communicates with hardware via the standard ratbagd D-Bus interface. This ensures full backwards compatibility with the original libratbag while we migrate to libratbag-rs.</p>
           </div>
         </div>
       </div>

@@ -228,14 +228,14 @@
       <!-- Expanded panel -->
       {#if isOpen}
         <div class="led-zone-body">
-          <!-- Mode selector -->
+          <!-- Mode selector (pill toggles) -->
           <div class="flex flex-col gap-1.5">
             <span class="text-[10px] uppercase tracking-widest text-base-content/30 font-semibold">Mode</span>
             <div class="pill-group">
               {#each led.modes as modeId (modeId)}
                 <button
-                  onclick={() => handleModeChange(sourceLed, modeId)}
                   class="pill-btn {led.mode === modeId ? 'pill-btn-active' : ''}"
+                  onclick={() => handleModeChange(sourceLed, modeId)}
                 >
                   {LED_MODES[modeId] ?? `Mode ${modeId}`}
                 </button>

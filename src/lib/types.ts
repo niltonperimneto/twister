@@ -89,9 +89,9 @@ export const LED_MODES: Record<number, string> = {
   0: 'Off',
   1: 'Solid',
   2: 'Cycle',
-  3: 'ColorWave',
-  4: 'Starlight',
-  5: 'Breathing',
+  3: 'Breathing',
+  4: 'ColorWave',
+  5: 'Starlight',
   6: 'TriColor',
 };
 
@@ -103,4 +103,39 @@ export const ACTION_TYPES: Record<number, string> = {
   3: 'Key',
   4: 'Macro',
   1000: 'Unknown',
+};
+
+/* Common standard mouse buttons mapping */
+export const COMMON_BUTTONS: Record<number, string> = {
+  1: 'Left Click',
+  2: 'Right Click',
+  3: 'Middle Click',
+  4: 'Scroll Up',
+  5: 'Scroll Down',
+  8: 'Back',
+  9: 'Forward',
+};
+
+/* Special action constants matching libratbag ratbag_button_action_special */
+const SPECIAL_BASE = 1 << 30; // 1073741824
+export const SPECIAL_ACTIONS: Record<number, string> = {
+  [SPECIAL_BASE]: 'Unknown',
+  [SPECIAL_BASE + 1]: 'Double Click',
+  [SPECIAL_BASE + 2]: 'Wheel Left',
+  [SPECIAL_BASE + 3]: 'Wheel Right',
+  [SPECIAL_BASE + 4]: 'Wheel Up',
+  [SPECIAL_BASE + 5]: 'Wheel Down',
+  [SPECIAL_BASE + 6]: 'Ratchet Mode Switch',
+  [SPECIAL_BASE + 7]: 'Resolution Cycle Up',
+  [SPECIAL_BASE + 8]: 'Resolution Cycle Down',
+  [SPECIAL_BASE + 9]: 'Resolution Up',
+  [SPECIAL_BASE + 10]: 'Resolution Down',
+  [SPECIAL_BASE + 11]: 'Resolution Alternate',
+  [SPECIAL_BASE + 12]: 'Resolution Default',
+  [SPECIAL_BASE + 13]: 'Profile Cycle Up',
+  [SPECIAL_BASE + 14]: 'Profile Cycle Down',
+  [SPECIAL_BASE + 15]: 'Profile Up',
+  [SPECIAL_BASE + 16]: 'Profile Down',
+  [SPECIAL_BASE + 17]: 'Second Mode',
+  [SPECIAL_BASE + 18]: 'Battery Level',
 };

@@ -118,7 +118,9 @@
       />
     {/if}
 
-    <main class="flex-1 flex min-w-0 min-h-0 overflow-hidden">
+    <main class="flex-1 min-w-0 min-h-0 overflow-hidden relative">
+      {#key currentView}
+        <div class="absolute inset-0 flex flex-col">
       {#if currentView === 'welcome'}
         <WelcomePage onNavigate={handleNavigate} />
       {:else if currentView === 'about'}
@@ -126,6 +128,7 @@
       {:else if currentView === 'donate'}
         <DonatePage />
       {:else if currentView === 'devices'}
+        <div class="flex-1 flex overflow-hidden" in:fade={{ duration: 250 }}>
       {#if store.activeProfile}
         {@const isEmpty = store.activeProfile.buttons.length === 0
           && store.activeProfile.leds.length === 0
@@ -242,7 +245,10 @@
           </div>
         </div>
       {/if}
+      </div>
       {/if}
+        </div>
+      {/key}
     </main>
   </div>
 
