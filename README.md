@@ -1,4 +1,4 @@
-99;6u99;6u# Twister
+# Twister
 
 **Twister** is a modern, desktop-agnostic graphical interface for configuring gaming mice on Linux.
 
