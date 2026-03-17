@@ -1,14 +1,10 @@
 [package]
 name = "twister"
-version = "0.1.0"
+version = "0.1.2"
 edition = "2024"
 description = "Twister — desktop-agnostic gaming mouse configuration GUI for Linux"
 license = "GPL-3.0-or-later"
 authors = ["Nilton Perim Neto <niltonperimneto@gmail.com>"]
-
-[lib]
-name = "twister_lib"
-crate-type = ["lib", "cdylib", "staticlib"]
 
 [[bin]]
 name = "twister"
@@ -19,7 +15,7 @@ tauri = { version = "2.10", features = [] }
 tauri-plugin-shell = "2.3"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-tokio = { version = "1.50", features = ["full"] }
+tokio = { version = "1.50", features = ["rt-multi-thread", "sync", "time", "macros"] }
 zbus = { version = "5.14", default-features = false, features = ["tokio"] }
 anyhow = "1.0.102"
 tracing = "0.1.44"

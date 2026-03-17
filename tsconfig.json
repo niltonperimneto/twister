@@ -11,7 +11,7 @@
     "isolatedModules": true,
     "verbatimModuleSyntax": true,
     "lib": ["ES2021", "DOM", "DOM.Iterable"],
-    "types": ["svelte"],
+    "types": ["svelte", "node"],
     "paths": {
       "$lib/*": ["./src/lib/*"]
     }

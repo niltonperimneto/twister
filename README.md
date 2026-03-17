@@ -44,7 +44,6 @@ manager — with no compositor plugins, Shell extensions, or GTK theme configura
   or `Ctrl+S`).
 - **Device visualiser** — Interactive SVG map of the mouse. Button and LED regions are revealed on
   hover with a glow effect. Clicking a region jumps to the relevant editor tab.
-- **Ambient LED glow** — The area around the device SVG glows with the current LED colour.
 - **Glassmorphic UI** — Floating panels, rounded corners, Inter typeface, micro-interactions, and
   dark-mode-first design.
 - **CSD titlebar** — Custom client-side decorations with minimize, maximize, and close controls.

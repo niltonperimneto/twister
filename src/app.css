@@ -1,7 +1,29 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
 @import "tailwindcss";
-@plugin "daisyui" {
-  themes: dracula;
+@plugin "daisyui";
+
+@theme {
+    --font-display: "Inter", system-ui, sans-serif;
+    --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --font-mono: ui-monospace, "Cascadia Code", "Fira Code", monospace;
+
+    /* DaisyUI Theme Overrides (Dracula/Glassmorphic) */
+    --color-primary: oklch(0.74 0.16 248);
+    --color-primary-content: oklch(0.98 0.02 248);
+    
+    --color-secondary: oklch(0.7 0.15 330);
+    --color-secondary-content: oklch(0.98 0.02 330);
+    
+    --color-base-100: oklch(0.17 0.015 265);
+    --color-base-200: oklch(0.15 0.015 265);
+    --color-base-300: oklch(0.13 0.015 265);
+    --color-base-content: oklch(0.92 0 0);
+    
+    --color-info: oklch(0.7 0.1 230);
+    --color-success: oklch(0.7 0.15 160);
+    --color-warning: oklch(0.75 0.15 80);
+    --color-error: oklch(0.65 0.2 25);
+
 }
 
 /* ------------------------------------------------------------------ */
@@ -9,48 +31,98 @@
 /* ------------------------------------------------------------------ */
 
 :root {
-  color-scheme: dark;
-  -webkit-font-smoothing: antialiased;
+    color-scheme: dark;
+    -webkit-font-smoothing: antialiased;
 
-  /* ---- GTK4 / Adwaita radius scale ---- */
-  --radius-xs: 4px;
-  --radius-sm: 6px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
-  --radius-full: 9999px;
+    /* ---- GTK4 / Adwaita radius scale ---- */
+    --radius-xs: 4px;
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-full: 9999px;
 
-  /* ---- Adaptive surface tokens (opaque default) ---- */
-  --surface-card: oklch(0.25 0.015 265 / 0.85);
-  --surface-sidebar: oklch(0.21 0.01 265);
-  --surface-titlebar: oklch(0.19 0.01 265);
-  --surface-led-zone: oklch(0.22 0.01 265 / 0.55);
-  --surface-picker: oklch(0.18 0.005 265 / 0.6);
-  --backdrop-blur: none;
+    /* ---- Opaque base layer ---- */
+    --surface-base: oklch(0.15 0.02 265);
+
+    /* ---- Adaptive surface tokens (semi-transparent over internal texture) ---- */
+    --surface-card: oklch(0.25 0.02 265 / 0.55);
+    --surface-sidebar: oklch(0.21 0.015 265 / 0.6);
+    --surface-titlebar: oklch(0.19 0.015 265 / 0.65);
+    --surface-led-zone: oklch(0.22 0.02 265 / 0.4);
+    --surface-picker: oklch(0.18 0.015 265 / 0.5);
+
+    /* ---- Glass compositing ---- */
+    --backdrop-blur: blur(20px) saturate(1.4);
+    --glass-border: oklch(1 0 0 / 0.1);
+    --glass-inset: inset 0 1px 0 0 oklch(1 0 0 / 0.08);
 }
 
-html, body, #app {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  background: transparent;
-  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  color: oklch(0.9 0 0 / 0.8);
+html,
+body,
+#app {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: transparent;
+    font-family: var(--font-sans);
+    color: oklch(0.92 0 0);
 }
 
 /* ------------------------------------------------------------------ */
-/* Glass mode overrides (KDE Plasma only)                              */
+/* Typography — display headings, mono data                            */
 /* ------------------------------------------------------------------ */
 
-:root[data-surface-mode="glass"] {
-  --surface-card: oklch(0.25 0.015 265 / 0.5);
-  --surface-sidebar: oklch(0.21 0.01 265 / 0.65);
-  --surface-titlebar: oklch(0.19 0.01 265 / 0.7);
-  --surface-led-zone: oklch(0.22 0.01 265 / 0.25);
-  --surface-picker: oklch(0.18 0.005 265 / 0.4);
-  --backdrop-blur: blur(20px) saturate(1.4);
+h1, h2, h3, h4, h5, h6,
+.sidebar-heading,
+.editor-card-header {
+    font-family: var(--font-display);
+}
+
+.font-mono,
+code, kbd, samp, pre {
+    font-family: var(--font-mono);
+}
+
+/* ------------------------------------------------------------------ */
+/* App root — opaque shell with internal mesh-gradient texture          */
+/* (border-radius is set inline because it changes dynamically         */
+/* when the window is maximised)                                       */
+/* ------------------------------------------------------------------ */
+
+.app-root {
+    background: var(--surface-base);
+    position: relative;
+    overflow: clip;
+    isolation: isolate;
+    box-shadow:
+        0 0 0 1px oklch(0.4 0.02 265 / 0.15),
+        0 8px 32px oklch(0 0 0 / 0.5);
+}
+
+/* Mesh-gradient texture layer — animated for "living" light */
+.app-root::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+        radial-gradient(ellipse 80% 60% at 15% 20%, oklch(0.24 0.06 280 / 0.7), transparent),
+        radial-gradient(ellipse 60% 80% at 85% 30%, oklch(0.22 0.05 320 / 0.5), transparent),
+        radial-gradient(ellipse 70% 50% at 50% 80%, oklch(0.21 0.055 250 / 0.6), transparent),
+        radial-gradient(ellipse 90% 70% at 30% 60%, oklch(0.20 0.04 200 / 0.4), transparent),
+        radial-gradient(ellipse 50% 90% at 70% 70%, oklch(0.23 0.045 290 / 0.35), transparent);
+    background-size: 200% 200%;
+    animation: mesh-drift 25s ease-in-out infinite alternate;
+}
+
+@keyframes mesh-drift {
+    0%   { background-position: 0% 0%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 50% 100%; }
 }
 
 /* ------------------------------------------------------------------ */
@@ -58,16 +130,14 @@ html, body, #app {
 /* ------------------------------------------------------------------ */
 
 [data-tauri-drag-region] {
-  -webkit-app-region: drag;
-  app-region: drag;
-  user-select: none;
+    -webkit-app-region: drag;
+    user-select: none;
 }
 
 [data-tauri-drag-region] button,
 [data-tauri-drag-region] a,
 [data-tauri-drag-region] input {
-  -webkit-app-region: no-drag;
-  app-region: no-drag;
+    -webkit-app-region: no-drag;
 }
 
 /* ------------------------------------------------------------------ */
@@ -75,51 +145,61 @@ html, body, #app {
 /* ------------------------------------------------------------------ */
 
 .sidebar-heading {
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  opacity: 0.35;
-  padding: 0 0.75rem;
-  margin-bottom: 0.5rem;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: oklch(0.75 0 0);
+    padding: 0 0.75rem;
+    margin-bottom: 0.5rem;
 }
 
 .sidebar-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  width: 100%;
-  text-align: left;
-  padding: 0.5rem 0.75rem;
-  margin: 0 0.25rem;
-  width: calc(100% - 0.5rem);
-  border-radius: var(--radius-md);
-  border: none;
-  transition: all 200ms cubic-bezier(0.16, 1, 0.3, 1);
-  cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    text-align: left;
+    padding: 0.5rem 0.75rem;
+    margin: 0 0.25rem;
+    width: calc(100% - 0.5rem);
+    border-radius: var(--radius-md);
+    border: none;
+    color: oklch(0.92 0 0);
+    font-weight: 500;
+    transition: all 200ms cubic-bezier(0.16, 1, 0.3, 1);
+    cursor: pointer;
 }
 
 .sidebar-item:hover {
-  background: oklch(0.5 0 0 / 0.12);
+    background: oklch(0.5 0 0 / 0.22);
+    color: oklch(1 0 0);
 }
 
 .sidebar-item:active {
-  transform: scale(0.97);
+    transform: scale(0.97);
 }
 
 .sidebar-item:hover svg {
-  stroke: oklch(0.74 0.16 248);
-  opacity: 1;
+    stroke: var(--color-primary);
+    opacity: 1;
 }
 
 .sidebar-item-active {
-  background: oklch(0.74 0.16 248 / 0.15);
-  box-shadow: inset 0 0 0 1px oklch(0.74 0.16 248 / 0.15);
+    background: linear-gradient(
+        to right,
+        oklch(0.74 0.16 248 / 0.28),
+        oklch(0.74 0.16 248 / 0.12)
+    );
+    color: oklch(1 0.03 248);
+    box-shadow:
+        inset 0 0 0 1px oklch(0.74 0.16 248 / 0.18),
+        inset 3px 0 8px -2px oklch(0.74 0.16 248 / 0.25);
 }
 
 .sidebar-item-active svg {
-  stroke: oklch(0.74 0.16 248);
-  opacity: 1;
+    stroke: var(--color-primary);
+    opacity: 1;
 }
 
 /* ------------------------------------------------------------------ */
@@ -127,35 +207,51 @@ html, body, #app {
 /* ------------------------------------------------------------------ */
 
 .editor-card {
-  background: var(--surface-card);
-  backdrop-filter: var(--backdrop-blur);
-  -webkit-backdrop-filter: var(--backdrop-blur);
-  border: 1px solid oklch(0.35 0 0 / 0.15);
-  border-radius: var(--radius-lg);
-  padding: 1.25rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  transition: border-color 200ms ease, box-shadow 200ms ease;
-  box-shadow: 0 2px 12px oklch(0 0 0 / 0.15);
+    background: linear-gradient(
+        to bottom,
+        oklch(0.28 0.02 265 / 0.6),
+        oklch(0.22 0.015 265 / 0.45)
+    );
+    backdrop-filter: var(--backdrop-blur);
+    -webkit-backdrop-filter: var(--backdrop-blur);
+    border: 1px solid oklch(0.4 0.02 265 / 0.18);
+    border-top-color: oklch(0.5 0.02 265 / 0.25);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    transition:
+        border-color 200ms ease,
+        box-shadow 200ms ease,
+        transform 200ms ease;
+    box-shadow:
+        var(--glass-inset),
+        0 4px 16px oklch(0 0 0 / 0.25),
+        0 1px 3px oklch(0 0 0 / 0.15);
 }
 
 .editor-card:hover {
-  border-color: oklch(0.45 0 0 / 0.2);
-  box-shadow: 0 4px 20px oklch(0 0 0 / 0.2);
+    border-color: oklch(0.5 0.03 265 / 0.25);
+    border-top-color: oklch(0.6 0.03 265 / 0.3);
+    box-shadow:
+        var(--glass-inset),
+        0 8px 24px oklch(0 0 0 / 0.3),
+        0 1px 3px oklch(0 0 0 / 0.15);
+    transform: translateY(-1px);
 }
 
 .editor-card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
 .editor-label {
-  font-size: 0.75rem;
-  opacity: 0.5;
-  width: 3.5rem;
-  flex-shrink: 0;
+    font-size: 0.75rem;
+    opacity: 0.5;
+    width: 3.5rem;
+    flex-shrink: 0;
 }
 
 /* ------------------------------------------------------------------ */
@@ -163,58 +259,73 @@ html, body, #app {
 /* ------------------------------------------------------------------ */
 
 .pill-group {
-  display: flex;
-  gap: 0.25rem;
-  flex-wrap: wrap;
+    display: flex;
+    gap: 0.25rem;
+    flex-wrap: wrap;
 }
 
 .pill-btn {
-  padding: 0.25rem 0.625rem;
-  font-size: 0.75rem;
-  border-radius: var(--radius-full);
-  border: 1px solid oklch(0.4 0 0 / 0.3);
-  background: transparent;
-  color: oklch(0.7 0 0);
-  cursor: pointer;
-  transition: all 200ms cubic-bezier(0.16, 1, 0.3, 1);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    padding: 0.25rem 0.625rem;
+    font-size: 0.75rem;
+    border-radius: var(--radius-full);
+    border: 1px solid oklch(0.4 0 0 / 0.3);
+    background: transparent;
+    color: oklch(0.7 0 0);
+    cursor: pointer;
+    transition: all 200ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .pill-btn:hover {
-  border-color: oklch(0.55 0 0 / 0.5);
-  background: oklch(0.35 0 0 / 0.3);
+    border-color: oklch(0.55 0 0 / 0.5);
+    background: oklch(0.35 0 0 / 0.3);
 }
 
 .pill-btn:active {
-  transform: scale(0.95);
+    transform: scale(0.95);
 }
 
 .pill-btn-active {
-  border-color: oklch(0.74 0.16 248);
-  background: oklch(0.74 0.16 248 / 0.2);
-  color: oklch(0.9 0.05 248);
+    border-color: var(--color-primary);
+    background: linear-gradient(
+        to bottom,
+        oklch(0.76 0.16 248 / 0.25),
+        oklch(0.70 0.14 248 / 0.15)
+    );
+    color: oklch(0.9 0.05 248);
+    box-shadow: inset 0 1px 0 0 oklch(1 0.05 248 / 0.1);
 }
 
 /* ------------------------------------------------------------------ */
 /* SVG interactive highlights                                          */
 /* ------------------------------------------------------------------ */
 
+.device-svg :global(svg) {
+    shape-rendering: geometricPrecision;
+}
+
 .device-svg [id^="button"],
 .device-svg [id^="led"] {
-  cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.25s ease, filter 0.25s ease;
+    cursor: pointer;
+    opacity: 0;
+    transition:
+        opacity 0.25s ease,
+        filter 0.25s ease;
 }
 
 .device-svg [id^="button"]:hover,
 .device-svg [id^="led"]:hover,
 .device-svg .svg-highlight {
-  opacity: 1;
-  filter: brightness(2) drop-shadow(0 0 10px oklch(0.74 0.16 248));
+    opacity: 1;
+    filter: brightness(2) drop-shadow(0 0 10px var(--color-primary));
 }
 
 .device-svg .svg-selected {
-  opacity: 1;
-  filter: brightness(2.5) drop-shadow(0 0 14px oklch(0.74 0.16 248));
+    opacity: 1;
+    filter: brightness(2.5) drop-shadow(0 0 14px var(--color-primary));
 }
 
 /* ------------------------------------------------------------------ */
@@ -222,10 +333,12 @@ html, body, #app {
 /* ------------------------------------------------------------------ */
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
-  }
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+    }
 }
 
 /* ------------------------------------------------------------------ */
@@ -233,52 +346,76 @@ html, body, #app {
 /* ------------------------------------------------------------------ */
 
 .btn {
-  border-radius: var(--radius-full);
-  border: 1px solid oklch(0.45 0 0 / 0.25);
-  background: oklch(0.28 0.01 265 / 0.5);
-  backdrop-filter: blur(12px) saturate(1.3);
-  -webkit-backdrop-filter: blur(12px) saturate(1.3);
-  color: oklch(0.85 0 0);
-  font-weight: 500;
-  transition: all 200ms cubic-bezier(0.16, 1, 0.3, 1);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: var(--radius-full);
+    border: 1px solid oklch(0.45 0 0 / 0.25);
+    background: linear-gradient(
+        to bottom,
+        oklch(0.32 0.015 265 / 0.55),
+        oklch(0.25 0.01 265 / 0.45)
+    );
+    backdrop-filter: blur(12px) saturate(1.3);
+    -webkit-backdrop-filter: blur(12px) saturate(1.3);
+    color: oklch(0.85 0 0);
+    font-weight: 500;
+    transition: all 200ms cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow:
+        inset 0 1px 0 0 oklch(1 0 0 / 0.08),
+        0 2px 8px oklch(0 0 0 / 0.2);
 }
 
 .btn:hover {
-  border-color: oklch(0.55 0 0 / 0.4);
-  background: oklch(0.32 0.01 265 / 0.6);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 16px oklch(0 0 0 / 0.25);
+    border-color: oklch(0.55 0 0 / 0.4);
+    background: oklch(0.32 0.01 265 / 0.6);
+    transform: translateY(-1px);
+    box-shadow:
+        var(--glass-inset),
+        0 4px 16px oklch(0 0 0 / 0.25);
 }
 
 .btn:active {
-  transform: scale(0.97);
-  box-shadow: none;
+    transform: scale(0.97);
+    box-shadow: none;
 }
 
 .btn-primary {
-  border-color: oklch(0.74 0.16 248 / 0.3);
-  background: oklch(0.74 0.16 248 / 0.18);
-  color: oklch(0.9 0.06 248);
+    border-color: oklch(0.74 0.16 248 / 0.3);
+    background: linear-gradient(
+        to bottom,
+        oklch(0.76 0.16 248 / 0.25),
+        oklch(0.68 0.16 248 / 0.15)
+    );
+    color: oklch(0.9 0.06 248);
 }
 
 .btn-primary:hover {
-  border-color: oklch(0.74 0.16 248 / 0.5);
-  background: oklch(0.74 0.16 248 / 0.3);
-  box-shadow: 0 4px 20px oklch(0.74 0.16 248 / 0.2);
+    border-color: oklch(0.74 0.16 248 / 0.5);
+    background: linear-gradient(
+        to bottom,
+        oklch(0.78 0.16 248 / 0.35),
+        oklch(0.70 0.16 248 / 0.25)
+    );
+    box-shadow:
+        inset 0 1px 0 0 oklch(1 0.05 248 / 0.12),
+        0 4px 20px oklch(0.74 0.16 248 / 0.2);
 }
 
 .btn-ghost {
-  border-color: transparent;
-  background: transparent;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
+    border-color: transparent;
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    box-shadow: none;
 }
 
 .btn-ghost:hover {
-  border-color: transparent;
-  background: oklch(0.5 0 0 / 0.12);
-  box-shadow: none;
-  transform: none;
+    border-color: transparent;
+    background: oklch(0.5 0 0 / 0.12);
+    box-shadow: none;
+    transform: none;
 }
 
 /* ------------------------------------------------------------------ */
@@ -286,9 +423,9 @@ html, body, #app {
 /* ------------------------------------------------------------------ */
 
 :focus-visible {
-  outline: 2px solid oklch(0.74 0.16 248);
-  outline-offset: 2px;
-  border-radius: var(--radius-xs);
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+    border-radius: var(--radius-xs);
 }
 
 /* ------------------------------------------------------------------ */
@@ -296,16 +433,16 @@ html, body, #app {
 /* ------------------------------------------------------------------ */
 
 ::-webkit-scrollbar {
-  width: 6px;
+    width: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+    background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: oklch(0.4 0 0 / 0.4);
-  border-radius: 3px;
+    background: oklch(0.4 0 0 / 0.4);
+    border-radius: 3px;
 }
 
 /* ------------------------------------------------------------------ */
@@ -313,174 +450,194 @@ html, body, #app {
 /* ------------------------------------------------------------------ */
 
 .led-zone {
-  border-radius: var(--radius-lg);
-  border: 1px solid oklch(0.35 0 0 / 0.2);
-  background: var(--surface-led-zone);
-  backdrop-filter: var(--backdrop-blur);
-  -webkit-backdrop-filter: var(--backdrop-blur);
-  transition: border-color 200ms ease, background 200ms ease;
-  overflow: hidden;
+    border-radius: var(--radius-lg);
+    border: 1px solid oklch(0.4 0.02 265 / 0.18);
+    border-top-color: oklch(0.5 0.02 265 / 0.22);
+    background: linear-gradient(
+        to bottom,
+        oklch(0.26 0.02 265 / 0.5),
+        oklch(0.20 0.015 265 / 0.35)
+    );
+    backdrop-filter: var(--backdrop-blur);
+    -webkit-backdrop-filter: var(--backdrop-blur);
+    transition:
+        border-color 200ms ease,
+        box-shadow 200ms ease;
+    overflow: hidden;
+    box-shadow:
+        var(--glass-inset),
+        0 3px 12px oklch(0 0 0 / 0.2),
+        0 1px 2px oklch(0 0 0 / 0.1);
 }
 
 .led-zone:hover {
-  border-color: oklch(0.45 0 0 / 0.25);
+    border-color: oklch(0.5 0.03 265 / 0.25);
+    border-top-color: oklch(0.55 0.03 265 / 0.28);
 }
 
 .led-zone-open {
-  border-color: oklch(0.74 0.16 248 / 0.2);
-  background: oklch(0.22 0.01 265 / 0.35);
+    border-color: oklch(0.74 0.16 248 / 0.2);
+    background: oklch(0.22 0.01 265 / 0.35);
 }
 
 .led-zone-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  padding: 0.625rem 0.875rem;
-  cursor: pointer;
-  transition: background 120ms ease;
-  border: none;
-  background: transparent;
-  color: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 0.625rem 0.875rem;
+    cursor: pointer;
+    transition: background 120ms ease;
+    border: none;
+    background: transparent;
+    color: inherit;
 }
 
 .led-zone-header:hover {
-  background: oklch(0.5 0 0 / 0.08);
+    background: oklch(0.5 0 0 / 0.08);
 }
 
 .led-zone-body {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  padding: 0 0.875rem 0.875rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 0 0.875rem 0.875rem;
 }
 
-/* Picker wrapper — glassmorphic container for iro.js wheel */
+/* Picker wrapper — convex glass container for iro.js wheel */
 .led-picker-wrapper {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.75rem;
-  border-radius: var(--radius-lg);
-  background: oklch(0.22 0.01 265 / 0.35);
-  backdrop-filter: blur(16px) saturate(1.4);
-  -webkit-backdrop-filter: blur(16px) saturate(1.4);
-  border: 1px solid oklch(0.5 0.08 265 / 0.12);
-  box-shadow:
-    0 0 0 1px oklch(1 0 0 / 0.03) inset,
-    0 4px 24px oklch(0 0 0 / 0.25);
-  transition: border-color 200ms ease, box-shadow 200ms ease;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem;
+    border-radius: var(--radius-lg);
+    background: linear-gradient(
+        to bottom,
+        oklch(0.26 0.02 265 / 0.45),
+        oklch(0.19 0.015 265 / 0.3)
+    );
+    backdrop-filter: blur(16px) saturate(1.4);
+    -webkit-backdrop-filter: blur(16px) saturate(1.4);
+    border: 1px solid oklch(0.5 0.08 265 / 0.15);
+    border-top-color: oklch(0.55 0.08 265 / 0.22);
+    box-shadow:
+        var(--glass-inset),
+        0 4px 24px oklch(0 0 0 / 0.25),
+        0 1px 3px oklch(0 0 0 / 0.12);
+    transition:
+        border-color 200ms ease,
+        box-shadow 200ms ease;
 }
 
 .led-picker-wrapper:hover {
-  border-color: oklch(0.55 0.08 265 / 0.2);
-  box-shadow:
-    0 0 0 1px oklch(1 0 0 / 0.04) inset,
-    0 6px 28px oklch(0 0 0 / 0.3);
+    border-color: oklch(0.6 0.08 265 / 0.22);
+    border-top-color: oklch(0.65 0.08 265 / 0.28);
+    box-shadow:
+        var(--glass-inset),
+        0 6px 28px oklch(0 0 0 / 0.3),
+        0 1px 3px oklch(0 0 0 / 0.12);
 }
 
 /* Override iro.js internal SVG for dark theme */
 .led-picker-wrapper :global(.IroColorPicker) {
-  --iro-bg: transparent;
+    --iro-bg: transparent;
 }
 
 /* Make iro.js wheel border translucent for glass effect */
 .led-picker-wrapper :global(.IroWheelBorder) {
-  stroke: oklch(0.5 0 0 / 0.15) !important;
+    stroke: oklch(0.5 0 0 / 0.15) !important;
 }
 
 /* Glass handle for the iro wheel cursor */
 .led-picker-wrapper :global(.IroHandle circle) {
-  stroke: oklch(0.9 0 0 / 0.7) !important;
-  filter: drop-shadow(0 0 6px oklch(0 0 0 / 0.4));
+    stroke: oklch(0.9 0 0 / 0.7) !important;
+    filter: drop-shadow(0 0 6px oklch(0 0 0 / 0.4));
 }
 
 /* HEX input field — frosted glass style */
 .led-hex-field {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  padding: 0.375rem 0.625rem;
-  border-radius: var(--radius-sm);
-  background: var(--surface-picker);
-  border: 1px solid oklch(0.35 0 0 / 0.2);
-  transition: border-color 150ms ease;
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.375rem 0.625rem;
+    border-radius: var(--radius-sm);
+    background: var(--surface-picker);
+    border: 1px solid oklch(0.35 0 0 / 0.2);
+    transition: border-color 150ms ease;
 }
 
 .led-hex-field:focus-within {
-  border-color: oklch(0.74 0.16 248 / 0.4);
+    border-color: oklch(0.74 0.16 248 / 0.4);
 }
 
 .led-hex-input {
-  flex: 1;
-  min-width: 0;
-  background: transparent;
-  border: none;
-  outline: none;
-  font-family: ui-monospace, 'Cascadia Code', 'Fira Code', monospace;
-  font-size: 0.75rem;
-  color: oklch(0.85 0 0);
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+    flex: 1;
+    min-width: 0;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: oklch(0.85 0 0);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
 }
 
-/* ------------------------------------------------------------------ */
-/* LED Range slider — frosted glass track                              */
 /* ------------------------------------------------------------------ */
 
 .led-range {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 100%;
-  height: 2px;
-  border-radius: 9999px;
-  background: oklch(0.3 0 0 / 0.4);
-  outline: none;
-  cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 2px;
+    border-radius: 9999px;
+    background: oklch(0.3 0 0 / 0.4);
+    outline: none;
+    cursor: pointer;
 }
 
 .led-range::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: oklch(0.74 0.16 248);
-  border: 2px solid oklch(0.9 0.05 248);
-  box-shadow: 0 0 10px oklch(0.74 0.16 248 / 0.5);
-  cursor: pointer;
-  transition: box-shadow 200ms ease;
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    border: 2px solid oklch(0.9 0.05 248);
+    box-shadow: 0 0 10px oklch(0.74 0.16 248 / 0.5);
+    cursor: pointer;
+    transition: box-shadow 200ms ease;
 }
 
 .led-range::-webkit-slider-thumb:hover {
-  box-shadow: 0 0 18px oklch(0.74 0.16 248 / 0.7);
+    box-shadow: 0 0 18px oklch(0.74 0.16 248 / 0.7);
 }
 
 .led-range::-moz-range-thumb {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: oklch(0.74 0.16 248);
-  border: 2px solid oklch(0.9 0.05 248);
-  box-shadow: 0 0 8px oklch(0.74 0.16 248 / 0.4);
-  cursor: pointer;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    border: 2px solid oklch(0.9 0.05 248);
+    box-shadow: 0 0 8px oklch(0.74 0.16 248 / 0.4);
+    cursor: pointer;
 }
 
 .led-range-secondary::-webkit-slider-thumb {
-  background: oklch(0.7 0.15 330);
-  border-color: oklch(0.85 0.08 330);
-  box-shadow: 0 0 8px oklch(0.7 0.15 330 / 0.4);
+    background: oklch(0.7 0.15 330);
+    border-color: oklch(0.85 0.08 330);
+    box-shadow: 0 0 8px oklch(0.7 0.15 330 / 0.4);
 }
 
 .led-range-secondary::-webkit-slider-thumb:hover {
-  box-shadow: 0 0 14px oklch(0.7 0.15 330 / 0.6);
+    box-shadow: 0 0 14px oklch(0.7 0.15 330 / 0.6);
 }
 
 .led-range-secondary::-moz-range-thumb {
-  background: oklch(0.7 0.15 330);
-  border-color: oklch(0.85 0.08 330);
-  box-shadow: 0 0 8px oklch(0.7 0.15 330 / 0.4);
+    background: oklch(0.7 0.15 330);
+    border-color: oklch(0.85 0.08 330);
+    box-shadow: 0 0 8px oklch(0.7 0.15 330 / 0.4);
 }
 
 /* ------------------------------------------------------------------ */
@@ -488,44 +645,53 @@ html, body, #app {
 /* ------------------------------------------------------------------ */
 
 .macro-recorder {
-  border-radius: var(--radius-lg);
-  border: 1px solid oklch(0.4 0.06 265 / 0.2);
-  background: oklch(0.2 0.01 265 / 0.4);
-  backdrop-filter: blur(16px) saturate(1.3);
-  -webkit-backdrop-filter: blur(16px) saturate(1.3);
-  padding: 0.75rem;
-  box-shadow:
-    0 0 0 1px oklch(1 0 0 / 0.03) inset,
-    0 4px 20px oklch(0 0 0 / 0.2);
-  transition: border-color 200ms ease;
+    border-radius: var(--radius-lg);
+    border: 1px solid oklch(0.4 0.06 265 / 0.2);
+    border-top-color: oklch(0.5 0.06 265 / 0.25);
+    background: linear-gradient(
+        to bottom,
+        oklch(0.25 0.02 265 / 0.5),
+        oklch(0.18 0.015 265 / 0.35)
+    );
+    backdrop-filter: blur(16px) saturate(1.3);
+    -webkit-backdrop-filter: blur(16px) saturate(1.3);
+    padding: 0.75rem;
+    box-shadow:
+        var(--glass-inset),
+        0 4px 20px oklch(0 0 0 / 0.2),
+        0 1px 3px oklch(0 0 0 / 0.12);
+    transition: border-color 200ms ease;
 }
 
 .macro-recorder:hover {
-  border-color: oklch(0.5 0.06 265 / 0.3);
+    border-color: oklch(0.55 0.06 265 / 0.3);
+    border-top-color: oklch(0.6 0.06 265 / 0.32);
 }
 
 .macro-entries {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem;
-  max-height: 120px;
-  overflow-y: auto;
-  padding: 0.25rem 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    max-height: 120px;
+    overflow-y: auto;
+    padding: 0.25rem 0;
 }
 
 .macro-entry {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.2rem 0.5rem;
-  border-radius: var(--radius-sm);
-  background: oklch(0.3 0.01 265 / 0.5);
-  border: 1px solid oklch(0.4 0 0 / 0.2);
-  font-size: 0.7rem;
-  transition: border-color 150ms ease, background 150ms ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: var(--radius-sm);
+    background: oklch(0.3 0.01 265 / 0.5);
+    border: 1px solid oklch(0.4 0 0 / 0.2);
+    font-size: 0.7rem;
+    transition:
+        border-color 150ms ease,
+        background 150ms ease;
 }
 
 .macro-entry:hover {
-  background: oklch(0.35 0.01 265 / 0.6);
-  border-color: oklch(0.5 0 0 / 0.3);
+    background: oklch(0.35 0.01 265 / 0.6);
+    border-color: oklch(0.5 0 0 / 0.3);
 }

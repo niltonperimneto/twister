@@ -137,6 +137,8 @@ class DeviceStore {
         this.refresh();
       }).then((unlisten) => {
         this.unlistenResync = unlisten;
+      }).catch((e) => {
+        console.error('[twister] Failed to subscribe to ratbag:resync:', e);
       });
     }
   }
@@ -182,13 +184,6 @@ class DeviceStore {
     return code;
   }
 
-  setActiveDevice(device: DeviceDto): void {
-    this.activeDevice = device;
-  }
-
-  clearError(): void {
-    this.error = null;
-  }
 }
 
 /* Singleton instance — shared across all components */

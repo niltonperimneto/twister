@@ -1,13 +1,8 @@
-/* Async D-Bus client for org.freedesktop.ratbag1 on the system bus.
- *
- * Modelled on ratbagctl-rs/src/dbus_client.rs but returns DTOs instead of
- * printing to stdout.  All methods are &self and use the shared zbus
- * Connection, which is internally thread-safe. */
-
-use anyhow::{anyhow, Context, Result};
+use anyhow::{Context, Result, anyhow};
 use futures::future::try_join_all;
-use zbus::zvariant::{OwnedValue, Value};
+use tracing::warn;
 use zbus::Connection;
+use zbus::zvariant::{OwnedValue, Value};
 
 use crate::dto::*;
 
@@ -38,7 +33,7 @@ impl RatbagClient {
         Ok(Self { conn })
     }
 
-    /// Returns a reference to the underlying zbus Connection for signal subscriptions.
+    /* Returns a reference to the underlying zbus Connection for signal subscriptions. */
     pub fn connection(&self) -> &Connection {
         &self.conn
     }
@@ -48,19 +43,28 @@ impl RatbagClient {
     /* ------------------------------------------------------------------ */
 
     pub async fn api_version(&self) -> Result<i32> {
-        self.get_i32(MANAGER_PATH, MANAGER_IFACE, "APIVersion").await
+        self.get_i32(MANAGER_PATH, MANAGER_IFACE, "APIVersion")
+            .await
     }
 
     pub async fn list_device_paths(&self) -> Result<Vec<String>> {
-        let val = self.get_property(MANAGER_PATH, MANAGER_IFACE, "Devices").await?;
-        extract_object_path_array(val)
+        self.get_object_paths(MANAGER_PATH, MANAGER_IFACE, "Devices")
+            .await
     }
 
     pub async fn list_devices(&self) -> Result<Vec<DeviceSummary>> {
         let paths = self.list_device_paths().await?;
         let futs = paths.into_iter().map(|p| async move {
-            let name = self.get_string(&p, DEVICE_IFACE, "Name").await.unwrap_or_default();
-            let model = self.get_string(&p, DEVICE_IFACE, "Model").await.unwrap_or_default();
+            let name = self.get_string(&p, DEVICE_IFACE, "Name").await
+                .unwrap_or_else(|e| {
+                    warn!("Failed to read Name for {p}: {e:#}");
+                    String::new()
+                });
+            let model = self.get_string(&p, DEVICE_IFACE, "Model").await
+                .unwrap_or_else(|e| {
+                    warn!("Failed to read Model for {p}: {e:#}");
+                    String::new()
+                });
             Ok::<_, anyhow::Error>(DeviceSummary { path: p, name, model })
         });
         try_join_all(futs).await
@@ -73,16 +77,18 @@ impl RatbagClient {
     pub async fn get_device(&self, path: &str) -> Result<DeviceDto> {
         let name = self.get_string(path, DEVICE_IFACE, "Name").await?;
         let model = self.get_string(path, DEVICE_IFACE, "Model").await?;
-        let firmware_version = self.get_string(path, DEVICE_IFACE, "FirmwareVersion").await?;
-        let device_type = self.get_u32(path, DEVICE_IFACE, "DeviceType").await.unwrap_or(0);
-        let profile_paths = {
-            let val = self.get_property(path, DEVICE_IFACE, "Profiles").await?;
-            extract_object_path_array(val)?
-        };
+        let firmware_version = self
+            .get_string(path, DEVICE_IFACE, "FirmwareVersion")
+            .await?;
+        let device_type = self
+            .get_u32(path, DEVICE_IFACE, "DeviceType")
+            .await
+            .unwrap_or(0);
+        let profile_paths = self
+            .get_object_paths(path, DEVICE_IFACE, "Profiles")
+            .await?;
 
-        let profiles = try_join_all(
-            profile_paths.iter().map(|pp| self.get_profile(pp)),
-        ).await?;
+        let profiles = try_join_all(profile_paths.iter().map(|pp| self.get_profile(pp))).await?;
 
         Ok(DeviceDto {
             path: path.to_owned(),
@@ -110,29 +116,49 @@ impl RatbagClient {
 
     pub async fn get_profile(&self, path: &str) -> Result<ProfileDto> {
         let index = self.get_u32(path, PROFILE_IFACE, "Index").await?;
-        let name = self.get_string(path, PROFILE_IFACE, "Name").await.unwrap_or_default();
+        let name = self
+            .get_string(path, PROFILE_IFACE, "Name")
+            .await
+            .unwrap_or_default();
         let is_active = self.get_bool(path, PROFILE_IFACE, "IsActive").await?;
-        let is_dirty = self.get_bool(path, PROFILE_IFACE, "IsDirty").await.unwrap_or(false);
-        let disabled = self.get_bool(path, PROFILE_IFACE, "Disabled").await.unwrap_or(false);
-        let report_rate = self.get_u32(path, PROFILE_IFACE, "ReportRate").await.unwrap_or(0);
-        let report_rates = self.get_vec_u32(path, PROFILE_IFACE, "ReportRates").await.unwrap_or_default();
-        let angle_snapping = self.get_i32(path, PROFILE_IFACE, "AngleSnapping").await.unwrap_or(-1);
-        let debounce = self.get_i32(path, PROFILE_IFACE, "Debounce").await.unwrap_or(-1);
-        let debounces = self.get_vec_u32(path, PROFILE_IFACE, "Debounces").await.unwrap_or_default();
-        let capabilities = self.get_vec_u32(path, PROFILE_IFACE, "Capabilities").await.unwrap_or_default();
+        let is_dirty = self
+            .get_bool(path, PROFILE_IFACE, "IsDirty")
+            .await
+            .unwrap_or(false);
+        let disabled = self
+            .get_bool(path, PROFILE_IFACE, "Disabled")
+            .await
+            .unwrap_or(false);
+        let report_rate = self
+            .get_u32(path, PROFILE_IFACE, "ReportRate")
+            .await
+            .unwrap_or(0);
+        let report_rates = self
+            .get_vec_u32(path, PROFILE_IFACE, "ReportRates")
+            .await
+            .unwrap_or_default();
+        let angle_snapping = self
+            .get_i32(path, PROFILE_IFACE, "AngleSnapping")
+            .await
+            .unwrap_or(-1);
+        let debounce = self
+            .get_i32(path, PROFILE_IFACE, "Debounce")
+            .await
+            .unwrap_or(-1);
+        let debounces = self
+            .get_vec_u32(path, PROFILE_IFACE, "Debounces")
+            .await
+            .unwrap_or_default();
+        let capabilities = self
+            .get_vec_u32(path, PROFILE_IFACE, "Capabilities")
+            .await
+            .unwrap_or_default();
 
-        let res_paths = {
-            let val = self.get_property(path, PROFILE_IFACE, "Resolutions").await?;
-            extract_object_path_array(val)?
-        };
-        let btn_paths = {
-            let val = self.get_property(path, PROFILE_IFACE, "Buttons").await?;
-            extract_object_path_array(val)?
-        };
-        let led_paths = {
-            let val = self.get_property(path, PROFILE_IFACE, "Leds").await?;
-            extract_object_path_array(val)?
-        };
+        let (res_paths, btn_paths, led_paths) = tokio::try_join!(
+            self.get_object_paths(path, PROFILE_IFACE, "Resolutions"),
+            self.get_object_paths(path, PROFILE_IFACE, "Buttons"),
+            self.get_object_paths(path, PROFILE_IFACE, "Leds"),
+        )?;
 
         let (resolutions, buttons, leds) = tokio::try_join!(
             try_join_all(res_paths.iter().map(|rp| self.get_resolution(rp))),
@@ -160,15 +186,8 @@ impl RatbagClient {
     }
 
     pub async fn set_profile_report_rate(&self, path: &str, rate: u32) -> Result<()> {
-        self.set_property(path, PROFILE_IFACE, "ReportRate", Value::from(rate)).await
-    }
-
-    pub async fn set_profile_active(&self, path: &str) -> Result<()> {
-        self.conn
-            .call_method(Some(BUS_NAME), path, Some(PROFILE_IFACE), "SetActive", &())
+        self.set_property(path, PROFILE_IFACE, "ReportRate", Value::from(rate))
             .await
-            .context("SetActive call failed")?;
-        Ok(())
     }
 
     /* ------------------------------------------------------------------ */
@@ -177,11 +196,20 @@ impl RatbagClient {
 
     pub async fn get_resolution(&self, path: &str) -> Result<ResolutionDto> {
         let index = self.get_u32(path, RESOLUTION_IFACE, "Index").await?;
-        let capabilities = self.get_vec_u32(path, RESOLUTION_IFACE, "Capabilities").await.unwrap_or_default();
+        let capabilities = self
+            .get_vec_u32(path, RESOLUTION_IFACE, "Capabilities")
+            .await
+            .unwrap_or_default();
         let is_active = self.get_bool(path, RESOLUTION_IFACE, "IsActive").await?;
         let is_default = self.get_bool(path, RESOLUTION_IFACE, "IsDefault").await?;
-        let is_disabled = self.get_bool(path, RESOLUTION_IFACE, "IsDisabled").await.unwrap_or(false);
-        let dpi_list = self.get_vec_u32(path, RESOLUTION_IFACE, "Resolutions").await.unwrap_or_default();
+        let is_disabled = self
+            .get_bool(path, RESOLUTION_IFACE, "IsDisabled")
+            .await
+            .unwrap_or(false);
+        let dpi_list = self
+            .get_vec_u32(path, RESOLUTION_IFACE, "Resolutions")
+            .await
+            .unwrap_or_default();
 
         let (dpi_x, dpi_y) = self.parse_dpi(path).await?;
 
@@ -198,23 +226,22 @@ impl RatbagClient {
         })
     }
 
-    pub async fn set_resolution_dpi(&self, path: &str, dpi_x: u32, dpi_y: Option<u32>) -> Result<()> {
-        let value: OwnedValue = if let Some(y) = dpi_y {
-            OwnedValue::try_from(Value::from((dpi_x, y)))
-                .map_err(|e| anyhow!("Failed to encode DPI tuple: {e}"))?
-        } else {
-            OwnedValue::try_from(Value::from(dpi_x))
-                .map_err(|e| anyhow!("Failed to encode DPI: {e}"))?
+    pub async fn set_resolution_dpi(
+        &self,
+        path: &str,
+        dpi_x: u32,
+        dpi_y: Option<u32>,
+    ) -> Result<()> {
+        let owned = match dpi_y {
+            Some(y) => to_owned_value(Value::from((dpi_x, y)))?,
+            None => to_owned_value(Value::from(dpi_x))?,
         };
-        self.set_property_owned(path, RESOLUTION_IFACE, "Resolution", value).await
+        self.set_property(path, RESOLUTION_IFACE, "Resolution", owned.into())
+            .await
     }
 
     pub async fn set_resolution_active(&self, path: &str) -> Result<()> {
-        self.conn
-            .call_method(Some(BUS_NAME), path, Some(RESOLUTION_IFACE), "SetActive", &())
-            .await
-            .context("SetActive call failed")?;
-        Ok(())
+        self.call_method(path, RESOLUTION_IFACE, "SetActive").await
     }
 
     /* ------------------------------------------------------------------ */
@@ -223,7 +250,10 @@ impl RatbagClient {
 
     pub async fn get_button(&self, path: &str) -> Result<ButtonDto> {
         let index = self.get_u32(path, BUTTON_IFACE, "Index").await?;
-        let action_types = self.get_vec_u32(path, BUTTON_IFACE, "ActionTypes").await.unwrap_or_default();
+        let action_types = self
+            .get_vec_u32(path, BUTTON_IFACE, "ActionTypes")
+            .await
+            .unwrap_or_default();
 
         let (action_type, action_value) = self.parse_button_mapping(path).await?;
 
@@ -236,26 +266,23 @@ impl RatbagClient {
         })
     }
 
-    pub async fn set_button_mapping(&self, path: &str, action_type: u32, value: &ActionValueDto) -> Result<()> {
-        let dbus_value: OwnedValue = match value {
-            ActionValueDto::None => OwnedValue::try_from(Value::from(0_u32))
-                .map_err(|e| anyhow!("{e}"))?,
-            ActionValueDto::Button { button } => OwnedValue::try_from(Value::from(*button))
-                .map_err(|e| anyhow!("{e}"))?,
-            ActionValueDto::Special { special } => OwnedValue::try_from(Value::from(*special))
-                .map_err(|e| anyhow!("{e}"))?,
-            ActionValueDto::Key { keycode } => OwnedValue::try_from(Value::from(*keycode))
-                .map_err(|e| anyhow!("{e}"))?,
-            ActionValueDto::Macro { entries } => OwnedValue::try_from(Value::from(entries.clone()))
-                .map_err(|e| anyhow!("{e}"))?,
-            ActionValueDto::Unknown => OwnedValue::try_from(Value::from(0_u32))
-                .map_err(|e| anyhow!("{e}"))?,
+    pub async fn set_button_mapping(
+        &self,
+        path: &str,
+        action_type: u32,
+        value: &ActionValueDto,
+    ) -> Result<()> {
+        let payload = match value {
+            ActionValueDto::None | ActionValueDto::Unknown => to_owned_value(Value::from(0_u32))?,
+            ActionValueDto::Button { button } => to_owned_value(Value::from(*button))?,
+            ActionValueDto::Special { special } => to_owned_value(Value::from(*special))?,
+            ActionValueDto::Key { keycode } => to_owned_value(Value::from(*keycode))?,
+            ActionValueDto::Macro { entries } => to_owned_value(Value::from(entries.clone()))?,
         };
 
-        let mapping = (action_type, dbus_value);
-        self.set_property_owned(path, BUTTON_IFACE, "Mapping",
-            OwnedValue::try_from(Value::from(mapping)).map_err(|e| anyhow!("{e}"))?
-        ).await
+        let mapping = to_owned_value(Value::from((action_type, payload)))?;
+        self.set_property(path, BUTTON_IFACE, "Mapping", mapping.into())
+            .await
     }
 
     /* ------------------------------------------------------------------ */
@@ -265,13 +292,34 @@ impl RatbagClient {
     pub async fn get_led(&self, path: &str) -> Result<LedDto> {
         let index = self.get_u32(path, LED_IFACE, "Index").await?;
         let mode = self.get_u32(path, LED_IFACE, "Mode").await?;
-        let modes = self.get_vec_u32(path, LED_IFACE, "Modes").await.unwrap_or_default();
-        let color = self.get_rgb(path, LED_IFACE, "Color").await.unwrap_or_default();
-        let secondary_color = self.get_rgb(path, LED_IFACE, "SecondaryColor").await.unwrap_or_default();
-        let tertiary_color = self.get_rgb(path, LED_IFACE, "TertiaryColor").await.unwrap_or_default();
-        let color_depth = self.get_u32(path, LED_IFACE, "ColorDepth").await.unwrap_or(0);
-        let effect_duration = self.get_u32(path, LED_IFACE, "EffectDuration").await.unwrap_or(0);
-        let brightness = self.get_u32(path, LED_IFACE, "Brightness").await.unwrap_or(0);
+        let modes = self
+            .get_vec_u32(path, LED_IFACE, "Modes")
+            .await
+            .unwrap_or_default();
+        let color = self
+            .get_rgb(path, LED_IFACE, "Color")
+            .await
+            .unwrap_or_default();
+        let secondary_color = self
+            .get_rgb(path, LED_IFACE, "SecondaryColor")
+            .await
+            .unwrap_or_default();
+        let tertiary_color = self
+            .get_rgb(path, LED_IFACE, "TertiaryColor")
+            .await
+            .unwrap_or_default();
+        let color_depth = self
+            .get_u32(path, LED_IFACE, "ColorDepth")
+            .await
+            .unwrap_or(0);
+        let effect_duration = self
+            .get_u32(path, LED_IFACE, "EffectDuration")
+            .await
+            .unwrap_or(0);
+        let brightness = self
+            .get_u32(path, LED_IFACE, "Brightness")
+            .await
+            .unwrap_or(0);
 
         Ok(LedDto {
             path: path.to_owned(),
@@ -288,25 +336,30 @@ impl RatbagClient {
     }
 
     pub async fn set_led_mode(&self, path: &str, mode: u32) -> Result<()> {
-        self.set_property(path, LED_IFACE, "Mode", Value::from(mode)).await
+        self.set_property(path, LED_IFACE, "Mode", Value::from(mode))
+            .await
     }
 
     pub async fn set_led_color(&self, path: &str, r: u32, g: u32, b: u32) -> Result<()> {
-        self.set_property(path, LED_IFACE, "Color", Value::from((r, g, b))).await
+        self.set_property(path, LED_IFACE, "Color", Value::from((r, g, b)))
+            .await
     }
 
     pub async fn set_led_brightness(&self, path: &str, value: u32) -> Result<()> {
-        self.set_property(path, LED_IFACE, "Brightness", Value::from(value)).await
+        self.set_property(path, LED_IFACE, "Brightness", Value::from(value))
+            .await
     }
 
     pub async fn set_led_effect_duration(&self, path: &str, ms: u32) -> Result<()> {
-        self.set_property(path, LED_IFACE, "EffectDuration", Value::from(ms)).await
+        self.set_property(path, LED_IFACE, "EffectDuration", Value::from(ms))
+            .await
     }
 
     /* ================================================================== */
     /* Private helpers                                                     */
     /* ================================================================== */
 
+    /* Low-level D-Bus property read. */
     async fn get_property(&self, path: &str, iface: &str, prop: &str) -> Result<OwnedValue> {
         let reply = self
             .conn
@@ -323,7 +376,14 @@ impl RatbagClient {
         Ok(val)
     }
 
-    async fn set_property(&self, path: &str, iface: &str, prop: &str, value: Value<'_>) -> Result<()> {
+    /* Low-level D-Bus property write. */
+    async fn set_property(
+        &self,
+        path: &str,
+        iface: &str,
+        prop: &str,
+        value: Value<'_>,
+    ) -> Result<()> {
         self.conn
             .call_method(
                 Some(BUS_NAME),
@@ -337,15 +397,20 @@ impl RatbagClient {
         Ok(())
     }
 
-    async fn set_property_owned(&self, path: &str, iface: &str, prop: &str, value: OwnedValue) -> Result<()> {
-        let v: Value<'_> = value.into();
-        self.set_property(path, iface, prop, v).await
+    /* Low-level no-arg D-Bus method call (SetActive, etc.). */
+    async fn call_method(&self, path: &str, iface: &str, method: &str) -> Result<()> {
+        self.conn
+            .call_method(Some(BUS_NAME), path, Some(iface), method, &())
+            .await
+            .with_context(|| format!("{method} on {path}"))?;
+        Ok(())
     }
+
+    /* ---- Typed property readers ---- */
 
     async fn get_string(&self, path: &str, iface: &str, prop: &str) -> Result<String> {
         let val = self.get_property(path, iface, prop).await?;
-        let inner: Value<'_> = val.into();
-        match inner {
+        match Value::from(val) {
             Value::Str(s) => Ok(s.to_string()),
             other => Ok(format!("{other}")),
         }
@@ -353,57 +418,56 @@ impl RatbagClient {
 
     async fn get_u32(&self, path: &str, iface: &str, prop: &str) -> Result<u32> {
         let val = self.get_property(path, iface, prop).await?;
-        let inner: Value<'_> = val.into();
-        match inner {
+        match Value::from(val) {
             Value::U32(v) => Ok(v),
-            Value::I32(v) => u32::try_from(v)
-                .map_err(|_| anyhow!("Negative i32 ({v}) cannot convert to u32 for {iface}.{prop}")),
-            _ => Err(anyhow!("Expected u32 for {iface}.{prop}")),
+            Value::I32(v) => u32::try_from(v).map_err(|_| {
+                anyhow!("Negative i32 ({v}) cannot convert to u32 for {iface}.{prop}")
+            }),
+            other => Err(anyhow!("Expected u32 for {iface}.{prop}, got {other}")),
         }
     }
 
     async fn get_i32(&self, path: &str, iface: &str, prop: &str) -> Result<i32> {
         let val = self.get_property(path, iface, prop).await?;
-        let inner: Value<'_> = val.into();
-        match inner {
+        match Value::from(val) {
             Value::I32(v) => Ok(v),
             Value::U32(v) => i32::try_from(v)
                 .map_err(|_| anyhow!("u32 ({v}) exceeds i32 range for {iface}.{prop}")),
-            _ => Err(anyhow!("Expected i32 for {iface}.{prop}")),
+            other => Err(anyhow!("Expected i32 for {iface}.{prop}, got {other}")),
         }
     }
 
     async fn get_bool(&self, path: &str, iface: &str, prop: &str) -> Result<bool> {
         let val = self.get_property(path, iface, prop).await?;
-        let inner: Value<'_> = val.into();
-        match inner {
+        match Value::from(val) {
             Value::Bool(v) => Ok(v),
-            _ => Err(anyhow!("Expected bool for {iface}.{prop}")),
+            other => Err(anyhow!("Expected bool for {iface}.{prop}, got {other}")),
         }
     }
 
     async fn get_vec_u32(&self, path: &str, iface: &str, prop: &str) -> Result<Vec<u32>> {
         let val = self.get_property(path, iface, prop).await?;
-        let inner: Value<'_> = val.into();
-        if let Value::Array(arr) = inner {
-            let mut out = Vec::with_capacity(arr.len());
-            for v in arr.iter() {
-                match v {
-                    Value::U32(n) => out.push(*n),
-                    Value::I32(n) => out.push(*n as u32),
-                    _ => {}
+        match Value::from(val) {
+            Value::Array(arr) => {
+                let mut out = Vec::with_capacity(arr.len());
+                for v in arr.iter() {
+                    match v {
+                        Value::U32(n) => out.push(*n),
+                        Value::I32(n) => out.push(*n as u32),
+                        other => {
+                            warn!("Unexpected element {other} in {iface}.{prop}, skipping");
+                        }
+                    }
                 }
+                Ok(out)
             }
-            Ok(out)
-        } else {
-            Err(anyhow!("Expected array for {iface}.{prop}"))
+            other => Err(anyhow!("Expected array for {iface}.{prop}, got {other}")),
         }
     }
 
     async fn get_rgb(&self, path: &str, iface: &str, prop: &str) -> Result<RgbDto> {
         let val = self.get_property(path, iface, prop).await?;
-        let inner: Value<'_> = val.into();
-        if let Value::Structure(s) = inner {
+        if let Value::Structure(s) = Value::from(val) {
             if let [Value::U32(r), Value::U32(g), Value::U32(b)] = s.fields() {
                 return Ok(RgbDto { r: *r, g: *g, b: *b });
             }
@@ -411,78 +475,64 @@ impl RatbagClient {
         Ok(RgbDto::default())
     }
 
-    async fn parse_dpi(&self, path: &str) -> Result<(u32, Option<u32>)> {
-        let val = self.get_property(path, RESOLUTION_IFACE, "Resolution").await?;
-        let inner: Value<'_> = val.into();
-        match &inner {
-            Value::U32(v) => Ok((*v, None)),
-            Value::Structure(s) => {
-                if let [Value::U32(x), Value::U32(y)] = s.fields() {
-                    if x == y {
-                        Ok((*x, None))
-                    } else {
-                        Ok((*x, Some(*y)))
+    async fn get_object_paths(&self, path: &str, iface: &str, prop: &str) -> Result<Vec<String>> {
+        let val = self.get_property(path, iface, prop).await?;
+        match Value::from(val) {
+            Value::Array(arr) => {
+                let mut out = Vec::with_capacity(arr.len());
+                for v in arr.iter() {
+                    match v {
+                        Value::ObjectPath(p) => out.push(p.to_string()),
+                        Value::Str(s) => out.push(s.to_string()),
+                        other => {
+                            warn!("Unexpected element {other} in {iface}.{prop}, skipping");
+                        }
                     }
-                } else {
-                    Ok((0, None))
                 }
+                Ok(out)
             }
+            other => Err(anyhow!("Expected array of object paths for {iface}.{prop}, got {other}")),
+        }
+    }
+
+    /* ---- Complex property parsers ---- */
+
+    async fn parse_dpi(&self, path: &str) -> Result<(u32, Option<u32>)> {
+        let val = self
+            .get_property(path, RESOLUTION_IFACE, "Resolution")
+            .await?;
+        match Value::from(val) {
+            Value::U32(v) => Ok((v, None)),
+            Value::Structure(s) => match s.fields() {
+                [Value::U32(x), Value::U32(y)] if x == y => Ok((*x, None)),
+                [Value::U32(x), Value::U32(y)] => Ok((*x, Some(*y))),
+                _ => Ok((0, None)),
+            },
             _ => Ok((0, None)),
         }
     }
 
     async fn parse_button_mapping(&self, path: &str) -> Result<(u32, ActionValueDto)> {
         let val = self.get_property(path, BUTTON_IFACE, "Mapping").await?;
-        let inner: Value<'_> = val.into();
 
-        if let Value::Structure(s) = &inner {
-            let fields = s.fields();
-            if fields.len() == 2 {
-                let action_type = match &fields[0] {
+        if let Value::Structure(s) = Value::from(val) {
+            if let [type_val, payload] = s.fields() {
+                let action_type = match type_val {
                     Value::U32(v) => *v,
                     _ => 0,
                 };
-                let payload = &fields[1];
 
                 let action_value = match action_type {
                     0 => ActionValueDto::None,
-                    1 => {
-                        if let Value::U32(b) = extract_inner_value(payload) {
-                            ActionValueDto::Button { button: *b }
-                        } else {
-                            ActionValueDto::None
-                        }
-                    }
-                    2 => {
-                        if let Value::U32(s) = extract_inner_value(payload) {
-                            ActionValueDto::Special { special: *s }
-                        } else {
-                            ActionValueDto::None
-                        }
-                    }
-                    3 => {
-                        if let Value::U32(k) = extract_inner_value(payload) {
-                            ActionValueDto::Key { keycode: *k }
-                        } else {
-                            ActionValueDto::None
-                        }
-                    }
-                    4 => {
-                        let unwrapped = extract_inner_value(payload);
-                        if let Value::Array(arr) = unwrapped {
-                            let mut entries = Vec::with_capacity(arr.len());
-                            for v in arr.iter() {
-                                if let Value::Structure(es) = v {
-                                    if let [Value::U32(a), Value::U32(b)] = es.fields() {
-                                        entries.push((*a, *b));
-                                    }
-                                }
-                            }
-                            ActionValueDto::Macro { entries }
-                        } else {
-                            ActionValueDto::Macro { entries: vec![] }
-                        }
-                    }
+                    1 => extract_u32(payload)
+                        .map_or(ActionValueDto::None, |b| ActionValueDto::Button { button: b }),
+                    2 => extract_u32(payload)
+                        .map_or(ActionValueDto::None, |s| ActionValueDto::Special { special: s }),
+                    3 => extract_u32(payload)
+                        .map_or(ActionValueDto::None, |k| ActionValueDto::Key { keycode: k }),
+                    4 => ActionValueDto::Macro {
+                        entries: extract_macro_entries(payload),
+                    },
                     _ => ActionValueDto::Unknown,
                 };
 
@@ -493,28 +543,40 @@ impl RatbagClient {
     }
 }
 
-/* Unwrap nested Value::Value wrappers (DBus variant-in-variant). */
-fn extract_inner_value<'a>(v: &'a Value<'a>) -> &'a Value<'a> {
+/* ================================================================== */
+/* Free-standing helpers                                                */
+/* ================================================================== */
+
+/* Convert a Value into an OwnedValue, mapping the error into anyhow. */
+fn to_owned_value(v: Value<'_>) -> Result<OwnedValue> {
+    OwnedValue::try_from(v).map_err(|e| anyhow!("Failed to encode D-Bus value: {e}"))
+}
+
+/* Unwrap nested Value::Value wrappers (D-Bus variant-in-variant)
+ * and extract a u32 if one is found. */
+fn extract_u32(v: &Value<'_>) -> Option<u32> {
     match v {
-        Value::Value(inner) => extract_inner_value(inner),
-        other => other,
+        Value::U32(n) => Some(*n),
+        Value::Value(inner) => extract_u32(inner),
+        _ => None,
     }
 }
 
-/* Extract an array of object path strings from a D-Bus property value. */
-fn extract_object_path_array(val: OwnedValue) -> Result<Vec<String>> {
-    let inner: Value<'_> = val.into();
-    if let Value::Array(arr) = inner {
-        let mut out = Vec::with_capacity(arr.len());
-        for v in arr.iter() {
-            match v {
-                Value::ObjectPath(p) => out.push(p.to_string()),
-                Value::Str(s) => out.push(s.to_string()),
-                _ => {}
-            }
-        }
-        Ok(out)
-    } else {
-        Err(anyhow!("Expected array of object paths"))
+/* Unwrap nested variants and extract a macro entry array [(u32, u32)]. */
+fn extract_macro_entries(v: &Value<'_>) -> Vec<(u32, u32)> {
+    match v {
+        Value::Array(arr) => arr
+            .iter()
+            .filter_map(|v| {
+                if let Value::Structure(es) = v {
+                    if let [Value::U32(a), Value::U32(b)] = es.fields() {
+                        return Some((*a, *b));
+                    }
+                }
+                None
+            })
+            .collect(),
+        Value::Value(inner) => extract_macro_entries(inner),
+        _ => Vec::new(),
     }
 }

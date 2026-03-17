@@ -5,7 +5,6 @@ import type {
   DaemonStatus,
   DeviceSummary,
   DeviceDto,
-  ProfileDto,
   ActionValueDto,
 } from '$lib/types';
 
@@ -19,10 +18,6 @@ export async function listDevices(): Promise<DeviceSummary[]> {
 
 export async function getDevice(path: string): Promise<DeviceDto> {
   return invoke<DeviceDto>('get_device', { path });
-}
-
-export async function getProfile(path: string): Promise<ProfileDto> {
-  return invoke<ProfileDto>('get_profile', { path });
 }
 
 export async function setResolutionDpi(
@@ -42,10 +37,6 @@ export async function setProfileReportRate(
   rate: number,
 ): Promise<void> {
   return invoke('set_profile_report_rate', { path, rate });
-}
-
-export async function setProfileActive(path: string): Promise<void> {
-  return invoke('set_profile_active', { path });
 }
 
 export async function setButtonMapping(

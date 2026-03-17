@@ -1,25 +1,13 @@
-/* Theme / surface-mode store — Svelte 5 Runes class pattern.
+/* Theme store — Svelte 5 Runes class pattern.
  *
- * Detects the Linux desktop environment via Tauri IPC and exposes a
- * reactive `surfaceMode` field ('glass' | 'opaque').  KDE Plasma gets
- * glass; everything else stays opaque. */
-
-import { detectSurfaceMode } from '$lib/ipc/commands';
-
-export type SurfaceMode = 'glass' | 'opaque';
+ * Glassmorphism is now rendered entirely within the DOM against an
+ * internal mesh-gradient texture, so no compositor detection is needed.
+ * The store is retained for future theme preferences (e.g. accent
+ * colour, blur intensity dial). */
 
 class ThemeStore {
-  surfaceMode: SurfaceMode = $state('opaque');
-  readonly isGlass: boolean = $derived(this.surfaceMode === 'glass');
-
   async init(): Promise<void> {
-    try {
-      const mode = await detectSurfaceMode();
-      this.surfaceMode = mode === 'glass' ? 'glass' : 'opaque';
-    } catch {
-      this.surfaceMode = 'opaque';
-    }
-    document.documentElement.setAttribute('data-surface-mode', this.surfaceMode);
+    document.documentElement.setAttribute('data-surface-mode', 'opaque');
   }
 }
 

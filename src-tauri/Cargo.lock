@@ -3924,7 +3924,6 @@ dependencies = [
  "bytes",
  "libc",
  "mio",
- "parking_lot",
  "pin-project-lite",
  "signal-hook-registry",
  "socket2",
@@ -4198,7 +4197,7 @@ checksum = "e421abadd41a4225275504ea4d6566923418b7f05506fbc9c0fe86ba7396114b"
 
 [[package]]
 name = "twister"
-version = "0.1.0"
+version = "0.1.2"
 dependencies = [
  "anyhow",
  "futures",

@@ -140,8 +140,8 @@
     width: 280px;
     height: 280px;
     border-radius: 50%;
-    filter: blur(120px);
-    opacity: 0.3;
+    filter: blur(100px);
+    opacity: 0.4;
     mix-blend-mode: screen;
     pointer-events: none;
     z-index: 0;
@@ -160,11 +160,13 @@
     font-weight: 500;
     white-space: nowrap;
     border-radius: 10px;
-    background: oklch(0.22 0.01 265 / 0.8);
+    background: oklch(0.22 0.01 265 / 0.65);
     backdrop-filter: blur(16px) saturate(1.4);
     -webkit-backdrop-filter: blur(16px) saturate(1.4);
     border: 1px solid oklch(0.4 0 0 / 0.15);
-    box-shadow: 0 4px 20px oklch(0 0 0 / 0.3);
+    box-shadow:
+      inset 0 0 0 1px oklch(1 0 0 / 0.04),
+      0 4px 20px oklch(0 0 0 / 0.3);
     color: oklch(0.9 0 0 / 0.9);
   }
 </style>
