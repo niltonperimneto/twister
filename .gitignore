@@ -2,6 +2,7 @@ node_modules/
 build/
 .svelte-kit/
 src-tauri/target/
+tui-poc/target/
 src-tauri/gen/
 npm-debug.log*
 .DS_Store
