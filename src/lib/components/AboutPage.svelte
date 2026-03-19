@@ -132,6 +132,7 @@
             <p
                 class="text-[11px] text-base-content/50 leading-relaxed text-center"
             >
+                Copyright © 2025 Nilton Perim Neto. All rights reserved. <br />
                 Twister is free software: you can redistribute it and/or modify
                 it under the terms of the
                 <button

@@ -24,7 +24,7 @@
         <!-- Heart icon -->
         <div class="relative">
             <svg
-                class="w-16 h-16 text-error/70"
+                class="w-16 h-16"
                 viewBox="0 0 24 24"
                 fill="currentColor"
             >
