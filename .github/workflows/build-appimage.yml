@@ -87,6 +87,7 @@ jobs:
           mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps
           cp src-tauri/target/release/$BINARY AppDir/usr/bin/
           cp src-tauri/icons/128x128@2x.png AppDir/usr/share/icons/hicolor/256x256/apps/${BINARY}.png
+          cp src-tauri/icons/128x128@2x.png AppDir/${BINARY}.png
 
           # Create desktop file
           cat > AppDir/${BINARY}.desktop <<'DESKTOP'
