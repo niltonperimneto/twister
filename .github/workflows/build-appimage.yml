@@ -66,16 +66,58 @@ jobs:
       - name: Install Tauri CLI
         run: cargo install tauri-cli --version "^2"
 
-      - name: Build Twister AppImage
+      - name: Build Twister binary
+        run: cargo tauri build --bundles none
+
+      - name: Bundle AppImage manually
         env:
           APPIMAGE_EXTRACT_AND_RUN: 1
-        run: cargo tauri build --bundles appimage
+        run: |
+          cd src-tauri/target/release/bundle/appimage/ || mkdir -p src-tauri/target/release/bundle/appimage && cd src-tauri/target/release/bundle/appimage/
+
+          ARCH=x86_64
+          APP=Twister
+          BINARY=twister
+
+          # Download tools
+          curl -Lo linuxdeploy.AppImage https://github.com/tauri-apps/binary-releases/releases/download/linuxdeploy/linuxdeploy-x86_64.AppImage
+          curl -Lo linuxdeploy-plugin-gtk.sh https://raw.githubusercontent.com/tauri-apps/linuxdeploy-plugin-gtk/master/linuxdeploy-plugin-gtk.sh
+          curl -Lo linuxdeploy-plugin-appimage.AppImage https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/download/continuous/linuxdeploy-plugin-appimage-x86_64.AppImage
+          chmod +x linuxdeploy.AppImage linuxdeploy-plugin-gtk.sh linuxdeploy-plugin-appimage.AppImage
+
+          # Create AppDir structure
+          mkdir -p AppDir/usr/bin
+          mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps
+
+          cp ../../$BINARY AppDir/usr/bin/
+          cp ../../../../icons/128x128@2x.png AppDir/usr/share/icons/hicolor/256x256/apps/${BINARY}.png
+
+          # Create desktop file
+          cat > AppDir/${BINARY}.desktop <<EOF
+          [Desktop Entry]
+          Name=${APP}
+          Exec=${BINARY}
+          Icon=${BINARY}
+          Type=Application
+          Categories=Utility;
+          EOF
+          sed -i 's/^          //' AppDir/${BINARY}.desktop
+
+          # Run linuxdeploy
+          OUTPUT="${APP}_$(grep '"version"' ../../../../tauri.conf.json | head -1 | sed 's/.*: "\(.*\)".*/\1/')_amd64.AppImage" \
+          ./linuxdeploy.AppImage \
+            --appdir AppDir \
+            --plugin gtk \
+            --output appimage \
+            --executable AppDir/usr/bin/$BINARY \
+            --desktop-file AppDir/${BINARY}.desktop \
+            --icon-file AppDir/usr/share/icons/hicolor/256x256/apps/${BINARY}.png
 
       - name: Upload AppImage to Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: src-tauri/target/release/bundle/appimage/*.AppImage
+          files: src-tauri/target/release/bundle/appimage/*.AppImage*
           tag_name: ${{ github.ref_name }}
           name: "Twister ${{ github.ref_name }}"
           body: "See the assets below to download and install Twister."
