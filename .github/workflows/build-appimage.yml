@@ -74,6 +74,7 @@ jobs:
       - name: Bundle AppImage manually
         env:
           APPIMAGE_EXTRACT_AND_RUN: 1
+          NO_STRIP: 1
         run: |
           cd src-tauri/target/release/bundle/appimage/ || mkdir -p src-tauri/target/release/bundle/appimage && cd src-tauri/target/release/bundle/appimage/
 
