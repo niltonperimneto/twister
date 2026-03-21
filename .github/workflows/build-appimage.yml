@@ -38,7 +38,7 @@ jobs:
             git
 
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Rust toolchain
         run: |
@@ -46,7 +46,7 @@ jobs:
           echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
       - name: Cache Rust dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.cargo/registry
@@ -67,6 +67,8 @@ jobs:
         run: cargo install tauri-cli --version "^2"
 
       - name: Build Twister AppImage
+        env:
+          APPIMAGE_EXTRACT_AND_RUN: 1
         run: cargo tauri build --bundles appimage
 
       - name: Upload AppImage to Release
