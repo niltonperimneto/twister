@@ -26,7 +26,6 @@ jobs:
             javascriptcoregtk4.1-devel \
             libappindicator-gtk3-devel \
             librsvg2-devel \
-            patchelf \
             systemd-devel \
             dbus-devel \
             openssl-devel \
@@ -67,9 +66,7 @@ jobs:
         run: cargo install tauri-cli --version "^2"
 
       - name: Build Twister binary
-        run: |
-          npm run build
-          cd src-tauri && cargo build --release
+        run: cargo tauri build --no-bundle
 
       - name: Bundle AppImage
         env:
@@ -119,7 +116,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: src-tauri/target/release/bundle/appimage/*.AppImage*
+          files: src-tauri/target/release/bundle/appimage/Twister_*.AppImage
           tag_name: ${{ github.ref_name }}
           name: "Twister ${{ github.ref_name }}"
           body: "See the assets below to download and install Twister."
