@@ -76,7 +76,9 @@ jobs:
           APPIMAGE_EXTRACT_AND_RUN: 1
           NO_STRIP: 1
         run: |
-          cd src-tauri/target/release/bundle/appimage/ || mkdir -p src-tauri/target/release/bundle/appimage && cd src-tauri/target/release/bundle/appimage/
+          WORKDIR=src-tauri/target/release/bundle/appimage
+          mkdir -p "$WORKDIR"
+          cd "$WORKDIR"
 
           ARCH=x86_64
           APP=Twister
@@ -96,18 +98,21 @@ jobs:
           cp ../../../../icons/128x128@2x.png AppDir/usr/share/icons/hicolor/256x256/apps/${BINARY}.png
 
           # Create desktop file
-          cat > AppDir/${BINARY}.desktop <<EOF
+          cat > AppDir/${BINARY}.desktop <<'DESKTOP'
           [Desktop Entry]
-          Name=${APP}
-          Exec=${BINARY}
-          Icon=${BINARY}
+          Name=Twister
+          Exec=twister
+          Icon=twister
           Type=Application
           Categories=Utility;
-          EOF
+          DESKTOP
           sed -i 's/^          //' AppDir/${BINARY}.desktop
 
+          # Get version from tauri.conf.json
+          VERSION=$(grep '"version"' ../../../../tauri.conf.json | head -1 | sed 's/.*: "\(.*\)".*/\1/')
+
           # Run linuxdeploy
-          OUTPUT="${APP}_$(grep '"version"' ../../../../tauri.conf.json | head -1 | sed 's/.*: "\(.*\)".*/\1/')_amd64.AppImage" \
+          OUTPUT="${APP}_${VERSION}_amd64.AppImage" \
           ./linuxdeploy.AppImage \
             --appdir AppDir \
             --plugin gtk \
