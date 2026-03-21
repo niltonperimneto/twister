@@ -71,31 +71,22 @@ jobs:
           npm run build
           cd src-tauri && cargo build --release
 
-      - name: Bundle AppImage manually
+      - name: Bundle AppImage
         env:
           APPIMAGE_EXTRACT_AND_RUN: 1
-          NO_STRIP: 1
         run: |
-          WORKDIR=src-tauri/target/release/bundle/appimage
-          mkdir -p "$WORKDIR"
-          cd "$WORKDIR"
+          OUTDIR=src-tauri/target/release/bundle/appimage
+          mkdir -p "$OUTDIR"
 
-          ARCH=x86_64
           APP=Twister
           BINARY=twister
+          VERSION=$(grep '"version"' src-tauri/tauri.conf.json | head -1 | sed 's/.*: "\(.*\)".*/\1/')
 
-          # Download tools
-          curl -Lo linuxdeploy.AppImage https://github.com/tauri-apps/binary-releases/releases/download/linuxdeploy/linuxdeploy-x86_64.AppImage
-          curl -Lo linuxdeploy-plugin-gtk.sh https://raw.githubusercontent.com/tauri-apps/linuxdeploy-plugin-gtk/master/linuxdeploy-plugin-gtk.sh
-          curl -Lo linuxdeploy-plugin-appimage.AppImage https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/download/continuous/linuxdeploy-plugin-appimage-x86_64.AppImage
-          chmod +x linuxdeploy.AppImage linuxdeploy-plugin-gtk.sh linuxdeploy-plugin-appimage.AppImage
-
-          # Create AppDir structure
+          # Build AppDir with just the binary (no bundled libs - use system libs)
           mkdir -p AppDir/usr/bin
           mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps
-
-          cp ../../$BINARY AppDir/usr/bin/
-          cp ../../../../icons/128x128@2x.png AppDir/usr/share/icons/hicolor/256x256/apps/${BINARY}.png
+          cp src-tauri/target/release/$BINARY AppDir/usr/bin/
+          cp src-tauri/icons/128x128@2x.png AppDir/usr/share/icons/hicolor/256x256/apps/${BINARY}.png
 
           # Create desktop file
           cat > AppDir/${BINARY}.desktop <<'DESKTOP'
@@ -108,18 +99,20 @@ jobs:
           DESKTOP
           sed -i 's/^          //' AppDir/${BINARY}.desktop
 
-          # Get version from tauri.conf.json
-          VERSION=$(grep '"version"' ../../../../tauri.conf.json | head -1 | sed 's/.*: "\(.*\)".*/\1/')
+          # Create AppRun
+          cat > AppDir/AppRun <<'APPRUN'
+          #!/bin/bash
+          SELF=$(readlink -f "$0")
+          HERE=${SELF%/*}
+          exec "$HERE/usr/bin/twister" "$@"
+          APPRUN
+          sed -i 's/^          //' AppDir/AppRun
+          chmod +x AppDir/AppRun
 
-          # Run linuxdeploy
-          OUTPUT="${APP}_${VERSION}_amd64.AppImage" \
-          ./linuxdeploy.AppImage \
-            --appdir AppDir \
-            --plugin gtk \
-            --output appimage \
-            --executable AppDir/usr/bin/$BINARY \
-            --desktop-file AppDir/${BINARY}.desktop \
-            --icon-file AppDir/usr/share/icons/hicolor/256x256/apps/${BINARY}.png
+          # Download appimagetool and package
+          curl -Lo appimagetool https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod +x appimagetool
+          ARCH=x86_64 ./appimagetool AppDir "${OUTDIR}/${APP}_${VERSION}_amd64.AppImage"
 
       - name: Upload AppImage to Release
         if: startsWith(github.ref, 'refs/tags/')
