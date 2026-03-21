@@ -67,7 +67,9 @@ jobs:
         run: cargo install tauri-cli --version "^2"
 
       - name: Build Twister binary
-        run: cargo tauri build --bundles none
+        run: |
+          npm run build
+          cd src-tauri && cargo build --release
 
       - name: Bundle AppImage manually
         env:
