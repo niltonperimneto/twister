@@ -57,7 +57,7 @@ manager — with no compositor plugins, Shell extensions, or GTK theme configura
 
 ![overview](public/screenshot_2.png)
 
-![colour](public/screenshot_4)
+![colour](public/screenshot_4.png)
 
 
 ---
