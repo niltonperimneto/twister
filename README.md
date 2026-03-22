@@ -7,8 +7,6 @@ a ground-up rewrite of the [libratbag](https://github.com/libratbag/libratbag) `
 in memory-safe Rust. Twister communicates with `ratbagd` or `ratbagd-rs` over the
 `org.freedesktop.ratbag1` D-Bus interface.
 
-![Twister](public/animation.gif)
-
 > **Status:** Active development — early alpha. Core features work. Building and packaging are not yet
 > automated. Contributions welcome!
 
