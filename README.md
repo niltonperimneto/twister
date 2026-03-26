@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="src-tauri/icons/icon.png" alt="Twister" width="128">
+</p>
+
 # Twister
 
 **Twister** is a modern, desktop-agnostic graphical interface for configuring gaming mice on Linux.
@@ -89,9 +93,9 @@ manager — with no compositor plugins, Shell extensions, or GTK theme configura
 ### From source
 
 ```bash
-# 1. Clone the repository
-git clone https://github.com/niltonperimneto/twister.git
-cd twister
+# 1. Clone the repository (Twister lives inside the libratbag-rs repo)
+git clone https://github.com/niltonperimneto/libratbag-rs.git
+cd libratbag-rs/twister
 
 # 2. Install JavaScript dependencies
 npm install
@@ -113,8 +117,8 @@ cargo tauri build        # production bundle
 # Using systemd
 sudo systemctl start ratbagd
 
-# Or manually (ratbagd-rs)
-sudo ratbagd-rs
+# Or manually
+sudo ratbagd
 ```
 
 ---
@@ -206,7 +210,7 @@ signals on the `org.freedesktop.ratbag1` bus and emits a `ratbag:resync` Tauri e
 ## Supported Devices
 
 Twister supports any device that is supported by `libratbag` / `ratbagd-rs`. This includes
-mice from Logitech, ASUS ROG, Razer, SteelSeries, Roccat, Glorious, and others.
+mice from Logitech, ASUS ROG, SteelSeries, Roccat, Glorious, Sinowealth, and others.
 
 Device visualisations are provided by the [Piper SVG library](https://github.com/libratbag/piper/tree/master/data/svgs).
 Run `./scripts/fetch_piper_svgs.sh` to update to the latest set from upstream.
@@ -273,7 +277,7 @@ Twister is free software: you can redistribute it and/or modify it under the ter
 [GNU General Public License v3.0 or later](https://www.gnu.org/licenses/gpl-3.0.html).
 
 ```
-Copyright (C) 2025 Nilton Perim Neto <niltonperimneto@gmail.com>
+Copyright (C) 2025-2026 Nilton Perim Neto <niltonperimneto@gmail.com>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
