@@ -31,7 +31,7 @@
 /* ------------------------------------------------------------------ */
 
 :root {
-    color-scheme: dark;
+    color-scheme: dark only;
     -webkit-font-smoothing: antialiased;
 
     /* ---- GTK4 / Adwaita radius scale ---- */

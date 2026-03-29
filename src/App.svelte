@@ -119,7 +119,6 @@
 <svelte:window onkeydown={handleKeydown} />
 
 <div
-    data-theme="dracula"
     class="app-root h-screen w-screen flex flex-col text-base-content relative"
     style="border-radius: {isMaximized ? '0' : 'var(--radius-lg)'};"
 >
