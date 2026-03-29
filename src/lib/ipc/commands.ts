@@ -1,6 +1,7 @@
 /* Tauri IPC bridge — typed wrappers around invoke() for every command. */
 
 import { invoke } from '@tauri-apps/api/core';
+import { addToast } from '$lib/stores/toast.svelte';
 import type {
   DaemonStatus,
   DeviceSummary,
@@ -78,6 +79,10 @@ export async function commitDevice(path: string): Promise<number> {
   return invoke<number>('commit_device', { path });
 }
 
-export async function detectSurfaceMode(): Promise<string> {
-  return invoke<string>('detect_surface_mode');
+export async function openUrl(url: string): Promise<void> {
+  try {
+    await invoke('plugin:shell|open', { path: url });
+  } catch {
+    addToast('Could not open link — try copying it manually', 'error');
+  }
 }

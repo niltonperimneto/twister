@@ -1,16 +1,7 @@
 <!-- DonatePage — support the project, repos, and donation links -->
 <script lang="ts">
     import { fade } from "svelte/transition";
-    import { invoke } from "@tauri-apps/api/core";
-    import { addToast } from "$lib/stores/toast.svelte";
-
-    async function openUrl(url: string) {
-        try {
-            await invoke("plugin:shell|open", { path: url });
-        } catch {
-            addToast("Could not open link — try copying it manually", "error");
-        }
-    }
+    import { openUrl } from "$lib/ipc/commands";
 </script>
 
 <div

@@ -1,17 +1,12 @@
 <!-- AboutPage — project info, credits, and GPLv3 license -->
 <script lang="ts">
     import { fade } from "svelte/transition";
+    import { getVersion } from "@tauri-apps/api/app";
     import auraLogo from "$lib/assets/aura-logo.svg";
-    import { invoke } from "@tauri-apps/api/core";
-    import { addToast } from "$lib/stores/toast.svelte";
+    import { openUrl } from "$lib/ipc/commands";
 
-    async function openUrl(url: string) {
-        try {
-            await invoke("plugin:shell|open", { path: url });
-        } catch {
-            addToast("Could not open link — try copying it manually", "error");
-        }
-    }
+    let version: string = $state("");
+    getVersion().then((v) => (version = v));
 </script>
 
 <div
@@ -33,7 +28,7 @@
                 ></div>
             </div>
             <h1 class="text-xl font-bold tracking-wide">Twister</h1>
-            <span class="badge badge-ghost badge-sm">Version 0.1.1</span>
+            <span class="badge badge-ghost badge-sm">Version {version}</span>
         </div>
 
         <!-- Description -->

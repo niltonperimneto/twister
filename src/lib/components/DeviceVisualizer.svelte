@@ -2,7 +2,7 @@
      Clicking a button/LED element emits the corresponding index. Hovering highlights it. -->
 <script lang="ts">
   import { loadDeviceSvg } from '$lib/svg-lookup';
-  import { onMount, tick } from 'svelte';
+  import { tick } from 'svelte';
 
   interface Props {
     /** ratbagd model string, e.g. "usb:046d:4074:0" */

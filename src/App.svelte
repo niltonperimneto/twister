@@ -211,11 +211,6 @@
                                 {:else}
                                     <!-- Left: Device SVG visualizer -->
                                     {#if store.activeDevice}
-                                        {@const led0 =
-                                            store.activeProfile?.leds?.[0]}
-                                        {@const glow = led0
-                                            ? `rgb(${led0.color.r},${led0.color.g},${led0.color.b})`
-                                            : null}
                                         <div
                                             class="w-2/5 shrink-0 flex flex-col items-center justify-center p-6 overflow-y-auto"
                                         >
@@ -223,7 +218,7 @@
                                                 model={store.activeDevice.model}
                                                 selectedId={selectedSvgId}
                                                 onSelect={handleSvgSelect}
-                                                ambientColor={glow}
+                                                ambientColor={ambientGlow}
                                                 class="max-w-sm w-full"
                                             />
                                             <p
