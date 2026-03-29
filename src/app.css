@@ -33,28 +33,22 @@
 :root {
     color-scheme: dark only;
     -webkit-font-smoothing: antialiased;
+    color: oklch(0.92 0 0);
 
     /* ---- GTK4 / Adwaita radius scale ---- */
     --radius-xs: 4px;
     --radius-sm: 6px;
     --radius-md: 8px;
     --radius-lg: 12px;
-    --radius-xl: 16px;
     --radius-full: 9999px;
 
     /* ---- Opaque base layer ---- */
     --surface-base: oklch(0.15 0.02 265);
 
-    /* ---- Adaptive surface tokens (semi-transparent over internal texture) ---- */
-    --surface-card: oklch(0.25 0.02 265 / 0.55);
-    --surface-sidebar: oklch(0.21 0.015 265 / 0.6);
-    --surface-titlebar: oklch(0.19 0.015 265 / 0.65);
-    --surface-led-zone: oklch(0.22 0.02 265 / 0.4);
     --surface-picker: oklch(0.18 0.015 265 / 0.5);
 
     /* ---- Glass compositing ---- */
     --backdrop-blur: blur(20px) saturate(1.4);
-    --glass-border: oklch(1 0 0 / 0.1);
     --glass-inset: inset 0 1px 0 0 oklch(1 0 0 / 0.08);
 }
 
@@ -158,7 +152,6 @@ code, kbd, samp, pre {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    width: 100%;
     text-align: left;
     padding: 0.5rem 0.75rem;
     margin: 0 0.25rem;
@@ -245,13 +238,6 @@ code, kbd, samp, pre {
     display: flex;
     align-items: center;
     justify-content: space-between;
-}
-
-.editor-label {
-    font-size: 0.75rem;
-    opacity: 0.5;
-    width: 3.5rem;
-    flex-shrink: 0;
 }
 
 /* ------------------------------------------------------------------ */
@@ -401,21 +387,6 @@ code, kbd, samp, pre {
     box-shadow:
         inset 0 1px 0 0 oklch(1 0.05 248 / 0.12),
         0 4px 20px oklch(0.74 0.16 248 / 0.2);
-}
-
-.btn-ghost {
-    border-color: transparent;
-    background: transparent;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    box-shadow: none;
-}
-
-.btn-ghost:hover {
-    border-color: transparent;
-    background: oklch(0.5 0 0 / 0.12);
-    box-shadow: none;
-    transform: none;
 }
 
 /* ------------------------------------------------------------------ */
@@ -582,62 +553,6 @@ code, kbd, samp, pre {
     color: oklch(0.85 0 0);
     letter-spacing: 0.05em;
     text-transform: uppercase;
-}
-
-/* ------------------------------------------------------------------ */
-
-.led-range {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 100%;
-    height: 2px;
-    border-radius: 9999px;
-    background: oklch(0.3 0 0 / 0.4);
-    outline: none;
-    cursor: pointer;
-}
-
-.led-range::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    background: var(--color-primary);
-    border: 2px solid oklch(0.9 0.05 248);
-    box-shadow: 0 0 10px oklch(0.74 0.16 248 / 0.5);
-    cursor: pointer;
-    transition: box-shadow 200ms ease;
-}
-
-.led-range::-webkit-slider-thumb:hover {
-    box-shadow: 0 0 18px oklch(0.74 0.16 248 / 0.7);
-}
-
-.led-range::-moz-range-thumb {
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    background: var(--color-primary);
-    border: 2px solid oklch(0.9 0.05 248);
-    box-shadow: 0 0 8px oklch(0.74 0.16 248 / 0.4);
-    cursor: pointer;
-}
-
-.led-range-secondary::-webkit-slider-thumb {
-    background: oklch(0.7 0.15 330);
-    border-color: oklch(0.85 0.08 330);
-    box-shadow: 0 0 8px oklch(0.7 0.15 330 / 0.4);
-}
-
-.led-range-secondary::-webkit-slider-thumb:hover {
-    box-shadow: 0 0 14px oklch(0.7 0.15 330 / 0.6);
-}
-
-.led-range-secondary::-moz-range-thumb {
-    background: oklch(0.7 0.15 330);
-    border-color: oklch(0.85 0.08 330);
-    box-shadow: 0 0 8px oklch(0.7 0.15 330 / 0.4);
 }
 
 /* ------------------------------------------------------------------ */

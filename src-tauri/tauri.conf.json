@@ -1,13 +1,13 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Twister",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "identifier": "io.github.niltonperimneto.Twister",
   "build": {
     "frontendDist": "../build",
     "devUrl": "http://localhost:5173",
-    "beforeDevCommand": "npm run dev",
-    "beforeBuildCommand": "npm run build"
+    "beforeDevCommand": "npm run sync-version && npm run dev",
+    "beforeBuildCommand": "npm run sync-version && npm run build"
   },
   "app": {
     "withGlobalTauri": false,
