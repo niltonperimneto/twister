@@ -4,7 +4,7 @@ use tracing::warn;
 use zbus::Connection;
 use zbus::zvariant::{OwnedValue, Value};
 
-use crate::dto::*;
+use crate::dto::{DeviceSummary, DeviceDto, ProfileDto, ResolutionDto, ButtonDto, ActionValueDto, LedDto, RgbDto};
 
 const BUS_NAME: &str = "org.freedesktop.ratbag1";
 const MANAGER_PATH: &str = "/org/freedesktop/ratbag1";
@@ -453,7 +453,7 @@ impl RatbagClient {
                 for v in arr.iter() {
                     match v {
                         Value::U32(n) => out.push(*n),
-                        Value::I32(n) => out.push(*n as u32),
+                        Value::I32(n) => out.push((*n).cast_unsigned()),
                         other => {
                             warn!("Unexpected element {other} in {iface}.{prop}, skipping");
                         }
@@ -467,10 +467,10 @@ impl RatbagClient {
 
     async fn get_rgb(&self, path: &str, iface: &str, prop: &str) -> Result<RgbDto> {
         let val = self.get_property(path, iface, prop).await?;
-        if let Value::Structure(s) = Value::from(val) {
-            if let [Value::U32(r), Value::U32(g), Value::U32(b)] = s.fields() {
-                return Ok(RgbDto { r: *r, g: *g, b: *b });
-            }
+        if let Value::Structure(s) = Value::from(val)
+            && let [Value::U32(r), Value::U32(g), Value::U32(b)] = s.fields()
+        {
+            return Ok(RgbDto { r: *r, g: *g, b: *b });
         }
         Ok(RgbDto::default())
     }
@@ -515,29 +515,29 @@ impl RatbagClient {
     async fn parse_button_mapping(&self, path: &str) -> Result<(u32, ActionValueDto)> {
         let val = self.get_property(path, BUTTON_IFACE, "Mapping").await?;
 
-        if let Value::Structure(s) = Value::from(val) {
-            if let [type_val, payload] = s.fields() {
-                let action_type = match type_val {
-                    Value::U32(v) => *v,
-                    _ => 0,
-                };
+        if let Value::Structure(s) = Value::from(val)
+            && let [type_val, payload] = s.fields()
+        {
+            let action_type = match type_val {
+                Value::U32(v) => *v,
+                _ => 0,
+            };
 
-                let action_value = match action_type {
-                    0 => ActionValueDto::None,
-                    1 => extract_u32(payload)
-                        .map_or(ActionValueDto::None, |b| ActionValueDto::Button { button: b }),
-                    2 => extract_u32(payload)
-                        .map_or(ActionValueDto::None, |s| ActionValueDto::Special { special: s }),
-                    3 => extract_u32(payload)
-                        .map_or(ActionValueDto::None, |k| ActionValueDto::Key { keycode: k }),
-                    4 => ActionValueDto::Macro {
-                        entries: extract_macro_entries(payload),
-                    },
-                    _ => ActionValueDto::Unknown,
-                };
+            let action_value = match action_type {
+                0 => ActionValueDto::None,
+                1 => extract_u32(payload)
+                    .map_or(ActionValueDto::None, |b| ActionValueDto::Button { button: b }),
+                2 => extract_u32(payload)
+                    .map_or(ActionValueDto::None, |s| ActionValueDto::Special { special: s }),
+                3 => extract_u32(payload)
+                    .map_or(ActionValueDto::None, |k| ActionValueDto::Key { keycode: k }),
+                4 => ActionValueDto::Macro {
+                    entries: extract_macro_entries(payload),
+                },
+                _ => ActionValueDto::Unknown,
+            };
 
-                return Ok((action_type, action_value));
-            }
+            return Ok((action_type, action_value));
         }
         Ok((0, ActionValueDto::None))
     }
@@ -568,10 +568,10 @@ fn extract_macro_entries(v: &Value<'_>) -> Vec<(u32, u32)> {
         Value::Array(arr) => arr
             .iter()
             .filter_map(|v| {
-                if let Value::Structure(es) = v {
-                    if let [Value::U32(a), Value::U32(b)] = es.fields() {
-                        return Some((*a, *b));
-                    }
+                if let Value::Structure(es) = v
+                    && let [Value::U32(a), Value::U32(b)] = es.fields()
+                {
+                    return Some((*a, *b));
                 }
                 None
             })

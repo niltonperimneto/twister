@@ -8,7 +8,7 @@ use tokio::sync::RwLock;
 use tracing::{error, info, warn};
 
 use crate::dbus_client::RatbagClient;
-use crate::dto::*;
+use crate::dto::{DaemonStatus, DeviceSummary, DeviceDto, ActionValueDto};
 
 /* ------------------------------------------------------------------ */
 /* Managed state                                                       */
@@ -179,10 +179,7 @@ async fn watch_dbus_signals(
  * changes resync (commit completed).  All other changes are self-caused
  * by the GUI's own set_* calls and are suppressed. */
 fn should_resync(signal: &zbus::fdo::PropertiesChanged) -> bool {
-    let args = match signal.args() {
-        Ok(a) => a,
-        Err(_) => return false,
-    };
+    let Ok(args) = signal.args() else { return false };
     let iface = args.interface_name.as_str();
 
     if iface == "org.freedesktop.ratbag1.Manager" {
