@@ -48,7 +48,7 @@
                 ></div>
             </div>
             <h1
-                class="text-2xl font-bold tracking-wide bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent"
+                class="text-2xl font-bold tracking-wide bg-linear-to-r from-primary via-secondary to-accent bg-clip-text text-transparent"
             >
                 Welcome to Twister
             </h1>
@@ -59,8 +59,8 @@
                 A desktop agnostic GUI for Linux gaming mice. Built on top of
                 the
                 <span class="font-semibold text-base-content/80">ratbagd</span>
-                D-Bus protocol, Twister maintains full backwards compatibility
-                with the original C
+                D-Bus protocol, Twister maintains full backwards compatibility with
+                the original C
                 <span class="font-semibold text-base-content/80">libratbag</span
                 >, however, we strive to replace it with
                 <span class="font-semibold text-base-content/80"
@@ -71,7 +71,7 @@
 
         <!-- What makes this different -->
         <div
-            class="editor-card w-full !gap-4"
+            class="editor-card w-full gap-4!"
             in:fly={{ y: 30, duration: 600, delay: 150 }}
         >
             <h2
@@ -177,7 +177,7 @@
 
         <!-- Quick Start -->
         <div
-            class="editor-card w-full !gap-4"
+            class="editor-card w-full gap-4!"
             in:fly={{ y: 30, duration: 600, delay: 300 }}
         >
             <h2

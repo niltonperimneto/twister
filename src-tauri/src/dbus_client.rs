@@ -236,7 +236,8 @@ impl RatbagClient {
             Some(y) => to_owned_value(Value::from((dpi_x, y)))?,
             None => to_owned_value(Value::from(dpi_x))?,
         };
-        self.set_property(path, RESOLUTION_IFACE, "Resolution", owned.into())
+        let wrapped = Value::Value(Box::new(owned.into()));
+        self.set_property(path, RESOLUTION_IFACE, "Resolution", wrapped)
             .await
     }
 
