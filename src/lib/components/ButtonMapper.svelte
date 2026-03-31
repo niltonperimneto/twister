@@ -21,7 +21,7 @@
     let editValue: string = $state("");
 
     function buttonLabel(index: number): string {
-        return COMMON_BUTTONS[index] ?? `Button ${index}`;
+        return COMMON_BUTTONS[index+1] ?? `Button ${index}`;
     }
 
     $effect(() => {
