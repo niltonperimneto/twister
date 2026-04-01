@@ -69,7 +69,7 @@ manager — with no compositor plugins, Shell extensions, or GTK theme configura
 | Overview & DPI | Welcome Screen |
 | :---: | :---: |
 | <img src="public/screenshot_2.png" width="400" alt="Overview"> | <img src="public/screenshot_1.png" width="400" alt="Welcome Screen"> |
-| **Lighting & RGB** | **Custom Mapping** |
+| **Support us** | **Lighting & RGB** |
 | <img src="public/screenshot_4.png" width="400" alt="Colour"> | <img src="public/screenshot_3.png" width="400" alt="Settings" onerror="this.style.display='none'"> |
 
 ---
