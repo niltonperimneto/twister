@@ -232,12 +232,11 @@ impl RatbagClient {
         dpi_x: u32,
         dpi_y: Option<u32>,
     ) -> Result<()> {
-        let owned = match dpi_y {
-            Some(y) => to_owned_value(Value::from((dpi_x, y)))?,
-            None => to_owned_value(Value::from(dpi_x))?,
+        let value = match dpi_y {
+            Some(y) => Value::from((dpi_x, y)),
+            None => Value::from(dpi_x),
         };
-        let wrapped = Value::Value(Box::new(owned.into()));
-        self.set_property(path, RESOLUTION_IFACE, "Resolution", wrapped)
+        self.set_property(path, RESOLUTION_IFACE, "Resolution", value)
             .await
     }
 
