@@ -28,6 +28,7 @@
     let sidebarOpen: boolean = $state(false);
     let currentView: View = $state("welcome");
     let isMaximized: boolean = $state(false);
+    let committing: boolean = $state(false);
 
     /* Global ambient glow color derived from the first LED, with a
        fallback so every device gets a consistent glow even without LEDs
@@ -87,11 +88,20 @@
     }
 
     async function handleCommit() {
+        if (committing) return;
+        committing = true;
         try {
             await store.commit();
             addToast("Changes written to device", "info");
         } catch (e) {
-            addToast(`Commit failed: ${e}`, "error");
+            const msg = String(e);
+            if (msg.includes("timed out")) {
+                addToast("Commit timed out — changes are applied live but may not persist after unplug", "info");
+            } else {
+                addToast(`Commit failed: ${e}`, "error");
+            }
+        } finally {
+            committing = false;
         }
     }
 
@@ -256,12 +266,18 @@
                                             <button
                                                 onclick={handleCommit}
                                                 class="btn btn-primary btn-sm gap-1"
+                                                disabled={committing}
                                             >
-                                                <Icon
-                                                    name="check"
-                                                    class="w-3.5 h-3.5"
-                                                />
-                                                Apply
+                                                {#if committing}
+                                                    <span class="loading loading-spinner loading-xs"></span>
+                                                    Applying…
+                                                {:else}
+                                                    <Icon
+                                                        name="check"
+                                                        class="w-3.5 h-3.5"
+                                                    />
+                                                    Apply
+                                                {/if}
                                             </button>
                                         </div>
 
