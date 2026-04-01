@@ -49,7 +49,9 @@
     ];
 
     let hasLeds = $derived(
-        store.activeProfile?.leds?.some((l) => l.modes.some((m) => m !== 0)) ?? false,
+        store.activeProfile?.leds?.some((l) =>
+            l.modes.some((m) => m !== 0) || (l.modes.length === 0 && l.mode !== 0),
+        ) ?? false,
     );
     let tabs = $derived(hasLeds ? allTabs : allTabs.filter((t) => t.id !== "leds"));
 
