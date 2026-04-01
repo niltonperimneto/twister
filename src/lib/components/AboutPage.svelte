@@ -20,12 +20,9 @@
             <div class="relative">
                 <img
                     src={auraLogo}
-                    alt="Aura logo"
-                    class="w-14 h-14 drop-shadow-[0_0_10px_rgba(118,0,159,0.25)]"
+                    alt="Twister logo"
+                    class="w-14 h-14 drop-shadow-[0_4px_12px_rgba(0,0,0,0.3)]"
                 />
-                <div
-                    class="absolute -inset-3 rounded-full bg-primary/10 blur-xl -z-10"
-                ></div>
             </div>
             <h1 class="text-xl font-bold tracking-wide">Twister</h1>
             <span class="badge badge-ghost badge-sm">Version {version}</span>
@@ -77,7 +74,7 @@
                 Technology Stack
             </h2>
             <div class="flex flex-wrap gap-2 justify-center">
-                {#each ["Rust", "Tokio", "zbus", "Tauri", "Svelte", "TypeScript", "HID++"] as tech}
+                {#each ["Tauri", "Svelte", "Rust", "TypeScript"] as tech}
                     <span
                         class="badge badge-outline badge-sm text-base-content/50 font-mono"
                         >{tech}</span
