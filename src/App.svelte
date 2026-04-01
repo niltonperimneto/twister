@@ -29,18 +29,37 @@
     let currentView: View = $state("welcome");
     let isMaximized: boolean = $state(false);
 
-    /* Global ambient glow color derived from the first LED */
+    /* Global ambient glow color derived from the first LED, with a
+       fallback so every device gets a consistent glow even without LEDs
+       or when the LED color is too dark to produce a visible glow */
+    const DEFAULT_GLOW = "rgb(120,160,255)";
     let ambientGlow: string | null = $derived.by(() => {
+        if (!store.activeDevice) return null;
         const led0 = store.activeProfile?.leds?.[0];
-        if (!led0) return null;
-        return `rgb(${led0.color.r},${led0.color.g},${led0.color.b})`;
+        if (!led0) return DEFAULT_GLOW;
+        const { r, g, b } = led0.color;
+        if (r + g + b < 30) return DEFAULT_GLOW;
+        return `rgb(${r},${g},${b})`;
     });
 
-    const tabs: { id: Tab; label: string; icon: string }[] = [
+    const allTabs: { id: Tab; label: string; icon: string }[] = [
         { id: "dpi", label: "DPI", icon: "chevrons-right" },
         { id: "buttons", label: "Buttons", icon: "mouse" },
         { id: "leds", label: "Lighting", icon: "sun" },
     ];
+
+    let hasLeds = $derived(
+        store.activeProfile?.leds?.some((l) => l.modes.some((m) => m !== 0)) ?? false,
+    );
+    let tabs = $derived(hasLeds ? allTabs : allTabs.filter((t) => t.id !== "leds"));
+
+    /* Fall back to "dpi" if the active tab is no longer available (e.g. switched
+       to a device without LEDs while the Lighting tab was selected) */
+    $effect(() => {
+        if (!tabs.some((t) => t.id === activeTab)) {
+            activeTab = "dpi";
+        }
+    });
 
     /* When the first device is loaded, auto-switch from welcome → devices (once) */
     let hasAutoSwitched = false;
@@ -58,7 +77,7 @@
     function handleSvgSelect(id: string) {
         selectedSvgId = id;
         if (id.startsWith("button")) activeTab = "buttons";
-        else if (id.startsWith("led")) activeTab = "leds";
+        else if (id.startsWith("led") && hasLeds) activeTab = "leds";
     }
 
     function handleNavigate(view: View) {
@@ -122,31 +141,6 @@
     class="app-root h-screen w-screen flex flex-col text-base-content relative"
     style="border-radius: {isMaximized ? '0' : 'var(--radius-lg)'};"
 >
-    <!-- Global ambient glow — bleeds across sidebar, visualizer, and editor -->
-    {#if ambientGlow}
-        <div
-            class="pointer-events-none absolute inset-0 z-0 overflow-clip"
-            style="border-radius: inherit;"
-        >
-            <div
-                class="absolute"
-                style="
-                    width: 600px;
-                    height: 600px;
-                    top: 40%;
-                    left: 25%;
-                    transform: translate(-50%, -50%);
-                    background: {ambientGlow};
-                    border-radius: 50%;
-                    filter: blur(180px);
-                    opacity: 0.18;
-                    mix-blend-mode: screen;
-                    transition: background-color 1.5s ease;
-                "
-            ></div>
-        </div>
-    {/if}
-
     <Titlebar
         onToggleSidebar={() => (sidebarOpen = !sidebarOpen)}
         {isMaximized}
@@ -383,6 +377,18 @@
         loading={store.loading}
         onRetry={() => store.init()}
     />
+
+    <!-- Ambient glow overlay — rendered last so it bleeds over all UI elements -->
+    {#if ambientGlow}
+        <div
+            class="pointer-events-none absolute inset-2 z-40 rounded-lg"
+            style="
+                background: radial-gradient(ellipse 80% 70% at 50% 50%, {ambientGlow}, transparent 70%);
+                opacity: 0.15;
+                transition: background 1.5s ease;
+            "
+        ></div>
+    {/if}
 
     <!-- Toast notifications — aria-live so screen readers announce new messages -->
     {#if getToasts().length > 0}
