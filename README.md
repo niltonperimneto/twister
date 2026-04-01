@@ -94,8 +94,8 @@ manager — with no compositor plugins, Shell extensions, or GTK theme configura
 
 ```bash
 # 1. Clone the repository (Twister lives inside the libratbag-rs repo)
-git clone https://github.com/niltonperimneto/libratbag-rs.git
-cd libratbag-rs/twister
+git clone https://github.com/niltonperimneto/twister.git
+cd twister
 
 # 2. Install JavaScript dependencies
 npm install
