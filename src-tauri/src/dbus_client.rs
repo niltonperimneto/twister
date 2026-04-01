@@ -101,10 +101,13 @@ impl RatbagClient {
     }
 
     pub async fn commit_device(&self, path: &str) -> Result<u32> {
-        let reply = self
+        let fut = self
             .conn
-            .call_method(Some(BUS_NAME), path, Some(DEVICE_IFACE), "Commit", &())
+            .call_method(Some(BUS_NAME), path, Some(DEVICE_IFACE), "Commit", &());
+
+        let reply = tokio::time::timeout(std::time::Duration::from_secs(10), fut)
             .await
+            .map_err(|_| anyhow!("Commit timed out -- the device may not support onboard storage, but your changes are already applied live"))?
             .context("Commit call failed")?;
         let code: u32 = reply.body().deserialize()?;
         Ok(code)
