@@ -35,17 +35,14 @@
         <!-- Logo + Title -->
         <div
             class="flex flex-col items-center gap-3"
-            in:fly={{ y: -30, duration: 500 }}
+            in:fly={{ y: 30, duration: 600 }}
         >
             <div class="relative">
                 <img
                     src={auraLogo}
-                    alt="Aura logo"
-                    class="w-28 h-28 drop-shadow-[0_0_18px_rgba(118,0,159,0.35)] aura-logo-sharp"
+                    alt="Twister logo"
+                    class="w-28 h-28 drop-shadow-[0_4px_12px_rgba(0,0,0,0.3)] aura-logo-sharp"
                 />
-                <div
-                    class="absolute -inset-6 rounded-full bg-primary/10 blur-2xl -z-10"
-                ></div>
             </div>
             <h1
                 class="text-2xl font-bold tracking-wide bg-linear-to-r from-primary via-secondary to-accent bg-clip-text text-transparent"
