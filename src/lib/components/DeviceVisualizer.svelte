@@ -100,14 +100,6 @@
   onmousemove={handleMouseMove}
   role="group"
 >
-  <!-- Ambient glow -->
-  {#if ambientColor}
-    <div
-      class="ambient-glow"
-      style="background-color: {ambientColor};"
-    ></div>
-  {/if}
-
   {#if svgHtml}
     {@html svgHtml}
   {:else}
@@ -133,22 +125,6 @@
     object-fit: contain;
     position: relative;
     z-index: 1;
-  }
-
-  .ambient-glow {
-    position: absolute;
-    width: 280px;
-    height: 280px;
-    border-radius: 50%;
-    filter: blur(100px);
-    opacity: 0.4;
-    mix-blend-mode: screen;
-    pointer-events: none;
-    z-index: 0;
-    transition: background-color 1s ease;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
   }
 
   .tooltip-float {
