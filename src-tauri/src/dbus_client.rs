@@ -502,7 +502,15 @@ impl RatbagClient {
         let val = self
             .get_property(path, RESOLUTION_IFACE, "Resolution")
             .await?;
-        match Value::from(val) {
+        /* The Resolution property is typed as D-Bus variant `v`, so
+         * Properties.Get returns v(v(...)). After zbus deserialises
+         * the outer variant we may still have a Value::Value wrapper
+         * that must be peeled off before inspecting the payload. */
+        let inner = match Value::from(val) {
+            Value::Value(v) => *v,
+            other => other,
+        };
+        match inner {
             Value::U32(v) => Ok((v, None)),
             Value::Structure(s) => match s.fields() {
                 [Value::U32(x), Value::U32(y)] if x == y => Ok((*x, None)),
