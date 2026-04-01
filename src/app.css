@@ -90,10 +90,8 @@ code, kbd, samp, pre {
     background: var(--surface-base);
     position: relative;
     z-index: 0;
-    overflow: hidden;
-    box-shadow:
-        0 0 0 1px oklch(0.4 0.02 265 / 0.15),
-        0 8px 32px oklch(0 0 0 / 0.5);
+    overflow: clip;
+    isolation: isolate;
 }
 
 /* Mesh-gradient texture layer — animated for "living" light */
