@@ -77,7 +77,7 @@
                 Technology Stack
             </h2>
             <div class="flex flex-wrap gap-2 justify-center">
-                {#each ["Rust", "Tokio", "zbus", "Tauri", "Svelte", "TypeScript", "HID++"] as tech}
+                {#each ["Tauri", "Svelte", "Rust", "TypeScript"] as tech}
                     <span
                         class="badge badge-outline badge-sm text-base-content/50 font-mono"
                         >{tech}</span

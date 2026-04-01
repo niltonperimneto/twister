@@ -73,11 +73,19 @@ jobs:
           APPIMAGE_EXTRACT_AND_RUN: 1
         run: |
           OUTDIR=src-tauri/target/release/bundle/appimage
+          rm -rf "$OUTDIR"
           mkdir -p "$OUTDIR"
 
           APP=Twister
           BINARY=twister
-          VERSION=$(grep '"version"' src-tauri/tauri.conf.json | head -1 | sed 's/.*: "\(.*\)".*/\1/')
+
+          # Use the git tag (strip leading 'v') when triggered by a tag push,
+          # otherwise fall back to the version in tauri.conf.json.
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            VERSION="${GITHUB_REF#refs/tags/v}"
+          else
+            VERSION=$(sed -n 's/.*"version": *"\([^"]*\)".*/\1/p' src-tauri/tauri.conf.json | head -1)
+          fi
 
           # Build AppDir with just the binary (no bundled libs - use system libs)
           mkdir -p AppDir/usr/bin
