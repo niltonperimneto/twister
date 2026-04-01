@@ -1,18 +1,27 @@
 <p align="center">
-  <img src="src-tauri/icons/icon.png" alt="Twister" width="128">
+  <img src="src-tauri/icons/icon.png" alt="Twister Icon" width="128">
 </p>
 
-# Twister
+<h1 align="center">Twister</h1>
 
-**Twister** is a modern, desktop-agnostic graphical interface for configuring gaming mice on Linux.
+<p align="center">
+  <strong>A modern, desktop-agnostic graphical interface for configuring gaming mice on Linux.</strong>
+</p>
 
-It is the official companion frontend for [ratbagd-rs](https://github.com/niltonperimneto/libratbag-rs),
-a ground-up rewrite of the [libratbag](https://github.com/libratbag/libratbag) `ratbagd` system daemon
-in memory-safe Rust. Twister communicates with `ratbagd` or `ratbagd-rs` over the
-`org.freedesktop.ratbag1` D-Bus interface.
+<p align="center">
+  <a href="https://github.com/niltonperimneto/libratbag-rs">
+    <img src="https://img.shields.io/badge/Companion%20to-ratbagd--rs-blue.svg?style=flat-square" alt="ratbagd-rs">
+  </a>
+  <img src="https://img.shields.io/badge/Status-Alpha-yellow.svg?style=flat-square" alt="Status">
+</p>
 
-> **Status:** Active development — early alpha. Core features work. Building and packaging are not yet
-> automated. Contributions welcome!
+<p align="center">
+  <img src="public/twister.gif" alt="Twister App Demo" width="800" style="border-radius: 8px;">
+</p>
+
+Twister is the official companion frontend for **[ratbagd-rs](https://github.com/niltonperimneto/libratbag-rs)**, a ground-up memory-safe Rust rewrite of the `ratbagd` system daemon. It communicates seamlessly via the `org.freedesktop.ratbag1` D-Bus interface to bring you total control over your gaming peripherals.
+
+> **Status:** Active development — early alpha. Core features work beautifully. Packaging automation is underway. Contributions are warmly welcomed!
 
 ---
 
@@ -57,12 +66,11 @@ manager — with no compositor plugins, Shell extensions, or GTK theme configura
 
 ## Screenshots
 
-![Welcome Screen](public/screenshot_1.png)
-
-![overview](public/screenshot_2.png)
-
-![colour](public/screenshot_4.png)
-
+| Overview & DPI | Actions & Macros |
+| :---: | :---: |
+| <img src="public/screenshot_2.png" width="400" alt="Overview"> | <img src="public/screenshot_1.png" width="400" alt="Welcome Screen"> |
+| **Lighting & RGB** | **Custom Mapping** |
+| <img src="public/screenshot_4.png" width="400" alt="Colour"> | <img src="public/screenshot_3.png" width="400" alt="Settings" onerror="this.style.display='none'"> |
 
 ---
 
