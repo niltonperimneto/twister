@@ -66,7 +66,7 @@ manager — with no compositor plugins, Shell extensions, or GTK theme configura
 
 ## Screenshots
 
-| Overview & DPI | Actions & Macros |
+| Overview & DPI | Welcome Screen |
 | :---: | :---: |
 | <img src="public/screenshot_2.png" width="400" alt="Overview"> | <img src="public/screenshot_1.png" width="400" alt="Welcome Screen"> |
 | **Lighting & RGB** | **Custom Mapping** |
