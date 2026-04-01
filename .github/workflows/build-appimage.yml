@@ -38,6 +38,8 @@ jobs:
 
       - name: Checkout repository
         uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
 
       - name: Setup Rust toolchain
         run: |
@@ -120,6 +122,30 @@ jobs:
           chmod +x appimagetool
           ARCH=x86_64 ./appimagetool AppDir "${OUTDIR}/${APP}_${VERSION}_amd64.AppImage"
 
+      - name: Generate release notes
+        if: startsWith(github.ref, 'refs/tags/')
+        id: notes
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+
+          # Find the previous tag to diff against
+          PREV=$(git tag --list 'v*' --sort=-version:refname \
+                 | grep -v "^${TAG}$" | head -1)
+
+          if [ -n "$PREV" ]; then
+            RANGE="${PREV}..${TAG}"
+          else
+            RANGE="$TAG"
+          fi
+
+          {
+            echo "## What's Changed"
+            echo ""
+            git log --no-merges --format="* %s (%h)" "$RANGE"
+            echo ""
+            echo "**Full Changelog**: https://github.com/${{ github.repository }}/compare/${PREV:-}...${TAG}"
+          } > release_notes.md
+
       - name: Upload AppImage to Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
@@ -127,8 +153,8 @@ jobs:
           files: src-tauri/target/release/bundle/appimage/Twister_*.AppImage
           tag_name: ${{ github.ref_name }}
           name: "Twister ${{ github.ref_name }}"
-          body: "See the assets below to download and install Twister."
-          draft: true
+          body_path: release_notes.md
+          draft: false
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
