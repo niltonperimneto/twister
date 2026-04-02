@@ -75,27 +75,23 @@ impl RatbagClient {
     /* ------------------------------------------------------------------ */
 
     pub async fn get_device(&self, path: &str) -> Result<DeviceDto> {
-        let name = self.get_string(path, DEVICE_IFACE, "Name").await?;
-        let model = self.get_string(path, DEVICE_IFACE, "Model").await?;
-        let firmware_version = self
-            .get_string(path, DEVICE_IFACE, "FirmwareVersion")
-            .await?;
-        let device_type = self
-            .get_u32(path, DEVICE_IFACE, "DeviceType")
-            .await
-            .unwrap_or(0);
-        let profile_paths = self
-            .get_object_paths(path, DEVICE_IFACE, "Profiles")
-            .await?;
+        let (name, model, firmware_version, device_type, profile_paths) = tokio::join!(
+            self.get_string(path, DEVICE_IFACE, "Name"),
+            self.get_string(path, DEVICE_IFACE, "Model"),
+            self.get_string(path, DEVICE_IFACE, "FirmwareVersion"),
+            self.get_u32(path, DEVICE_IFACE, "DeviceType"),
+            self.get_object_paths(path, DEVICE_IFACE, "Profiles"),
+        );
 
+        let profile_paths = profile_paths?;
         let profiles = try_join_all(profile_paths.iter().map(|pp| self.get_profile(pp))).await?;
 
         Ok(DeviceDto {
             path: path.to_owned(),
-            name,
-            model,
-            firmware_version,
-            device_type,
+            name: name?,
+            model: model?,
+            firmware_version: firmware_version.unwrap_or_default(),
+            device_type: device_type.unwrap_or(0),
             profiles,
         })
     }
@@ -118,50 +114,29 @@ impl RatbagClient {
     /* ------------------------------------------------------------------ */
 
     pub async fn get_profile(&self, path: &str) -> Result<ProfileDto> {
-        let index = self.get_u32(path, PROFILE_IFACE, "Index").await?;
-        let name = self
-            .get_string(path, PROFILE_IFACE, "Name")
-            .await
-            .unwrap_or_default();
-        let is_active = self.get_bool(path, PROFILE_IFACE, "IsActive").await?;
-        let is_dirty = self
-            .get_bool(path, PROFILE_IFACE, "IsDirty")
-            .await
-            .unwrap_or(false);
-        let disabled = self
-            .get_bool(path, PROFILE_IFACE, "Disabled")
-            .await
-            .unwrap_or(false);
-        let report_rate = self
-            .get_u32(path, PROFILE_IFACE, "ReportRate")
-            .await
-            .unwrap_or(0);
-        let report_rates = self
-            .get_vec_u32(path, PROFILE_IFACE, "ReportRates")
-            .await
-            .unwrap_or_default();
-        let angle_snapping = self
-            .get_i32(path, PROFILE_IFACE, "AngleSnapping")
-            .await
-            .unwrap_or(-1);
-        let debounce = self
-            .get_i32(path, PROFILE_IFACE, "Debounce")
-            .await
-            .unwrap_or(-1);
-        let debounces = self
-            .get_vec_u32(path, PROFILE_IFACE, "Debounces")
-            .await
-            .unwrap_or_default();
-        let capabilities = self
-            .get_vec_u32(path, PROFILE_IFACE, "Capabilities")
-            .await
-            .unwrap_or_default();
-
-        let (res_paths, btn_paths, led_paths) = tokio::try_join!(
+        let (
+            index, name, is_active, is_dirty, disabled,
+            report_rate, report_rates, angle_snapping,
+            debounce, debounces, capabilities,
+            res_paths, btn_paths, led_paths,
+        ) = tokio::join!(
+            self.get_u32(path, PROFILE_IFACE, "Index"),
+            self.get_string(path, PROFILE_IFACE, "Name"),
+            self.get_bool(path, PROFILE_IFACE, "IsActive"),
+            self.get_bool(path, PROFILE_IFACE, "IsDirty"),
+            self.get_bool(path, PROFILE_IFACE, "Disabled"),
+            self.get_u32(path, PROFILE_IFACE, "ReportRate"),
+            self.get_vec_u32(path, PROFILE_IFACE, "ReportRates"),
+            self.get_i32(path, PROFILE_IFACE, "AngleSnapping"),
+            self.get_i32(path, PROFILE_IFACE, "Debounce"),
+            self.get_vec_u32(path, PROFILE_IFACE, "Debounces"),
+            self.get_vec_u32(path, PROFILE_IFACE, "Capabilities"),
             self.get_object_paths(path, PROFILE_IFACE, "Resolutions"),
             self.get_object_paths(path, PROFILE_IFACE, "Buttons"),
             self.get_object_paths(path, PROFILE_IFACE, "Leds"),
-        )?;
+        );
+
+        let (res_paths, btn_paths, led_paths) = (res_paths?, btn_paths?, led_paths?);
 
         let (resolutions, buttons, leds) = tokio::try_join!(
             try_join_all(res_paths.iter().map(|rp| self.get_resolution(rp))),
@@ -171,17 +146,17 @@ impl RatbagClient {
 
         Ok(ProfileDto {
             path: path.to_owned(),
-            index,
-            name,
-            is_active,
-            is_dirty,
-            disabled,
-            report_rate,
-            report_rates,
-            angle_snapping,
-            debounce,
-            debounces,
-            capabilities,
+            index: index?,
+            name: name.unwrap_or_default(),
+            is_active: is_active?,
+            is_dirty: is_dirty.unwrap_or(false),
+            disabled: disabled.unwrap_or(false),
+            report_rate: report_rate.unwrap_or(0),
+            report_rates: report_rates.unwrap_or_default(),
+            angle_snapping: angle_snapping.unwrap_or(-1),
+            debounce: debounce.unwrap_or(-1),
+            debounces: debounces.unwrap_or_default(),
+            capabilities: capabilities.unwrap_or_default(),
             resolutions,
             buttons,
             leds,
@@ -198,34 +173,29 @@ impl RatbagClient {
     /* ------------------------------------------------------------------ */
 
     pub async fn get_resolution(&self, path: &str) -> Result<ResolutionDto> {
-        let index = self.get_u32(path, RESOLUTION_IFACE, "Index").await?;
-        let capabilities = self
-            .get_vec_u32(path, RESOLUTION_IFACE, "Capabilities")
-            .await
-            .unwrap_or_default();
-        let is_active = self.get_bool(path, RESOLUTION_IFACE, "IsActive").await?;
-        let is_default = self.get_bool(path, RESOLUTION_IFACE, "IsDefault").await?;
-        let is_disabled = self
-            .get_bool(path, RESOLUTION_IFACE, "IsDisabled")
-            .await
-            .unwrap_or(false);
-        let dpi_list = self
-            .get_vec_u32(path, RESOLUTION_IFACE, "Resolutions")
-            .await
-            .unwrap_or_default();
+        let (index, capabilities, is_active, is_default, is_disabled, dpi_list, dpi) =
+            tokio::join!(
+                self.get_u32(path, RESOLUTION_IFACE, "Index"),
+                self.get_vec_u32(path, RESOLUTION_IFACE, "Capabilities"),
+                self.get_bool(path, RESOLUTION_IFACE, "IsActive"),
+                self.get_bool(path, RESOLUTION_IFACE, "IsDefault"),
+                self.get_bool(path, RESOLUTION_IFACE, "IsDisabled"),
+                self.get_vec_u32(path, RESOLUTION_IFACE, "Resolutions"),
+                self.parse_dpi(path),
+            );
 
-        let (dpi_x, dpi_y) = self.parse_dpi(path).await?;
+        let (dpi_x, dpi_y) = dpi?;
 
         Ok(ResolutionDto {
             path: path.to_owned(),
-            index,
+            index: index?,
             dpi_x,
             dpi_y,
-            dpi_list,
-            capabilities,
-            is_active,
-            is_default,
-            is_disabled,
+            dpi_list: dpi_list.unwrap_or_default(),
+            capabilities: capabilities.unwrap_or_default(),
+            is_active: is_active?,
+            is_default: is_default?,
+            is_disabled: is_disabled.unwrap_or(false),
         })
     }
 
@@ -253,20 +223,20 @@ impl RatbagClient {
     /* ------------------------------------------------------------------ */
 
     pub async fn get_button(&self, path: &str) -> Result<ButtonDto> {
-        let index = self.get_u32(path, BUTTON_IFACE, "Index").await?;
-        let action_types = self
-            .get_vec_u32(path, BUTTON_IFACE, "ActionTypes")
-            .await
-            .unwrap_or_default();
+        let (index, action_types, mapping) = tokio::join!(
+            self.get_u32(path, BUTTON_IFACE, "Index"),
+            self.get_vec_u32(path, BUTTON_IFACE, "ActionTypes"),
+            self.parse_button_mapping(path),
+        );
 
-        let (action_type, action_value) = self.parse_button_mapping(path).await?;
+        let (action_type, action_value) = mapping?;
 
         Ok(ButtonDto {
             path: path.to_owned(),
-            index,
+            index: index?,
             action_type,
             action_value,
-            action_types,
+            action_types: action_types.unwrap_or_default(),
         })
     }
 
@@ -294,48 +264,32 @@ impl RatbagClient {
     /* ------------------------------------------------------------------ */
 
     pub async fn get_led(&self, path: &str) -> Result<LedDto> {
-        let index = self.get_u32(path, LED_IFACE, "Index").await?;
-        let mode = self.get_u32(path, LED_IFACE, "Mode").await?;
-        let modes = self
-            .get_vec_u32(path, LED_IFACE, "Modes")
-            .await
-            .unwrap_or_default();
-        let color = self
-            .get_rgb(path, LED_IFACE, "Color")
-            .await
-            .unwrap_or_default();
-        let secondary_color = self
-            .get_rgb(path, LED_IFACE, "SecondaryColor")
-            .await
-            .unwrap_or_default();
-        let tertiary_color = self
-            .get_rgb(path, LED_IFACE, "TertiaryColor")
-            .await
-            .unwrap_or_default();
-        let color_depth = self
-            .get_u32(path, LED_IFACE, "ColorDepth")
-            .await
-            .unwrap_or(0);
-        let effect_duration = self
-            .get_u32(path, LED_IFACE, "EffectDuration")
-            .await
-            .unwrap_or(0);
-        let brightness = self
-            .get_u32(path, LED_IFACE, "Brightness")
-            .await
-            .unwrap_or(0);
+        let (
+            index, mode, modes, color, secondary_color,
+            tertiary_color, color_depth, effect_duration, brightness,
+        ) = tokio::join!(
+            self.get_u32(path, LED_IFACE, "Index"),
+            self.get_u32(path, LED_IFACE, "Mode"),
+            self.get_vec_u32(path, LED_IFACE, "Modes"),
+            self.get_rgb(path, LED_IFACE, "Color"),
+            self.get_rgb(path, LED_IFACE, "SecondaryColor"),
+            self.get_rgb(path, LED_IFACE, "TertiaryColor"),
+            self.get_u32(path, LED_IFACE, "ColorDepth"),
+            self.get_u32(path, LED_IFACE, "EffectDuration"),
+            self.get_u32(path, LED_IFACE, "Brightness"),
+        );
 
         Ok(LedDto {
             path: path.to_owned(),
-            index,
-            mode,
-            modes,
-            color,
-            secondary_color,
-            tertiary_color,
-            color_depth,
-            effect_duration,
-            brightness,
+            index: index?,
+            mode: mode?,
+            modes: modes.unwrap_or_default(),
+            color: color.unwrap_or_default(),
+            secondary_color: secondary_color.unwrap_or_default(),
+            tertiary_color: tertiary_color.unwrap_or_default(),
+            color_depth: color_depth.unwrap_or(0),
+            effect_duration: effect_duration.unwrap_or(0),
+            brightness: brightness.unwrap_or(0),
         })
     }
 
@@ -457,7 +411,10 @@ impl RatbagClient {
                 for v in arr.iter() {
                     match v {
                         Value::U32(n) => out.push(*n),
-                        Value::I32(n) => out.push((*n).cast_unsigned()),
+                        Value::I32(n) if *n >= 0 => out.push(*n as u32),
+                        Value::I32(n) => {
+                            warn!("Negative i32 ({n}) in {iface}.{prop}, skipping");
+                        }
                         other => {
                             warn!("Unexpected element {other} in {iface}.{prop}, skipping");
                         }
@@ -518,9 +475,15 @@ impl RatbagClient {
             Value::Structure(s) => match s.fields() {
                 [Value::U32(x), Value::U32(y)] if x == y => Ok((*x, None)),
                 [Value::U32(x), Value::U32(y)] => Ok((*x, Some(*y))),
-                _ => Ok((0, None)),
+                other => {
+                    warn!("Unexpected Resolution structure on {path}: {other:?}");
+                    Ok((0, None))
+                }
             },
-            _ => Ok((0, None)),
+            other => {
+                warn!("Unexpected Resolution type on {path}: {other}");
+                Ok((0, None))
+            }
         }
     }
 

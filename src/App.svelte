@@ -173,7 +173,11 @@
 
         <main class="flex-1 min-w-0 min-h-0 overflow-hidden relative">
             {#key currentView}
-                <div class="absolute inset-0 flex flex-col">
+                <div
+                    class="absolute inset-0 flex flex-col"
+                    in:fly={{ y: 8, duration: 200, delay: 80 }}
+                    out:fade={{ duration: 120 }}
+                >
                     {#if currentView === "welcome"}
                         <WelcomePage onNavigate={handleNavigate} />
                     {:else if currentView === "about"}
@@ -181,10 +185,7 @@
                     {:else if currentView === "donate"}
                         <DonatePage />
                     {:else if currentView === "devices"}
-                        <div
-                            class="flex-1 flex overflow-hidden"
-                            in:fade={{ duration: 250 }}
-                        >
+                        <div class="flex-1 flex overflow-hidden">
                             {#if store.activeProfile}
                                 {@const isEmpty =
                                     store.activeProfile.buttons.length === 0 &&
