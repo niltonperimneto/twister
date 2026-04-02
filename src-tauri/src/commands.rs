@@ -43,7 +43,13 @@ macro_rules! with_client {
 /* ------------------------------------------------------------------ */
 
 fn validate_ratbag_path(path: &str) -> Result<(), String> {
-    if !path.starts_with("/org/freedesktop/ratbag1/") || path.contains("..") {
+    /* D-Bus object paths must start with the ratbag1 prefix and contain
+     * only ASCII alphanumerics, underscores, and forward slashes. This
+     * rejects traversal sequences, embedded NULs, and any character that
+     * is not part of a valid D-Bus object path component. */
+    if !path.starts_with("/org/freedesktop/ratbag1/")
+        || !path.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'/' || b == b'_')
+    {
         return Err("Invalid D-Bus object path".to_owned());
     }
     Ok(())
