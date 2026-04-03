@@ -1,7 +1,7 @@
 {
   "name": "twister",
   "private": true,
-  "version": "0.1.6",
+  "version": "0.1.7",
   "type": "module",
   "scripts": {
     "sync-version": "bash scripts/sync-version.sh",
@@ -16,14 +16,14 @@
     "@tauri-apps/cli": "^2.10.1"
   },
   "devDependencies": {
-    "@sveltejs/vite-plugin-svelte": "^6.2.4",
+    "@sveltejs/vite-plugin-svelte": "^7.0.0",
     "@tailwindcss/vite": "^4.2.2",
     "@types/node": "^25.5.0",
     "daisyui": "^5.5.19",
-    "svelte": "^5.53.12",
-    "svelte-check": "^4.4.5",
+    "svelte": "^5.55.1",
+    "svelte-check": "^4.4.6",
     "tailwindcss": "^4.2",
-    "typescript": "^5.9.3",
-    "vite": "^7.3.1"
+    "typescript": "^6.0.2",
+    "vite": "^8.0.3"
   }
 }
