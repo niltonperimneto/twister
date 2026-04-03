@@ -38,8 +38,10 @@ modules:
       - install -Dm644 src-tauri/icons/128x128@2x.png
           /app/share/icons/hicolor/256x256/apps/io.github.niltonperimneto.Twister.png
     sources:
-      - type: dir
-        path: .
+      - type: git
+        url: https://github.com/niltonperimneto/twister.git
+        tag: v0.1.7
+        commit: 3736152b4bb9d34012e278e9f0d5af6a35716e10
       # Generated offline dependency manifests (not included in the app repo).
       # To regenerate after updating dependencies:
       #   python3 flatpak-cargo-generator.py src-tauri/Cargo.lock -o cargo-sources.json
