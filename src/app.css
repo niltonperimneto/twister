@@ -63,6 +63,8 @@ body,
     background: transparent;
     font-family: var(--font-sans);
     color: oklch(0.92 0 0);
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 /* ------------------------------------------------------------------ */
