@@ -34,9 +34,9 @@
 
   <launchable type="desktop-id">io.github.niltonperimneto.Twister.desktop</launchable>
 
-  <url type="homepage">https://github.com/niltonperimneto/libratbag-rs</url>
-  <url type="bugtracker">https://github.com/niltonperimneto/libratbag-rs/issues</url>
-  <url type="vcs-browser">https://github.com/niltonperimneto/libratbag-rs/tree/master/twister</url>
+  <url type="homepage">https://github.com/niltonperimneto/twister</url>
+  <url type="bugtracker">https://github.com/niltonperimneto/twister/issues</url>
+  <url type="vcs-browser">https://github.com/niltonperimneto/twister</url>
 
   <branding>
     <color type="primary" scheme_preference="light">#e0e0e0</color>
@@ -46,15 +46,15 @@
   <screenshots>
     <screenshot type="default">
       <caption>Device overview with DPI editor</caption>
-      <image>https://raw.githubusercontent.com/niltonperimneto/libratbag-rs/master/twister/public/screenshot_2.png</image>
+      <image>https://raw.githubusercontent.com/niltonperimneto/twister/master/public/screenshot_2.png</image>
     </screenshot>
     <screenshot>
       <caption>Welcome screen</caption>
-      <image>https://raw.githubusercontent.com/niltonperimneto/libratbag-rs/master/twister/public/screenshot_1.png</image>
+      <image>https://raw.githubusercontent.com/niltonperimneto/twister/master/public/screenshot_1.png</image>
     </screenshot>
     <screenshot>
       <caption>LED colour editor</caption>
-      <image>https://raw.githubusercontent.com/niltonperimneto/libratbag-rs/master/twister/public/screenshot_4.png</image>
+      <image>https://raw.githubusercontent.com/niltonperimneto/twister/master/public/screenshot_4.png</image>
     </screenshot>
   </screenshots>
 
