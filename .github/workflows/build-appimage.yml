@@ -14,7 +14,7 @@ permissions:
 jobs:
   build-appimage:
     runs-on: ubuntu-latest
-    container: fedora:41
+    container: fedora:43
 
     steps:
       - name: Install system dependencies
@@ -37,9 +37,12 @@ jobs:
             git
 
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
+
+      - name: Mark workspace as safe for git
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
       - name: Setup Rust toolchain
         run: |
@@ -53,8 +56,8 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             src-tauri/target
-          key: rust-fedora41-${{ hashFiles('src-tauri/Cargo.lock') }}
-          restore-keys: rust-fedora41-
+          key: rust-fedora43-${{ hashFiles('src-tauri/Cargo.lock') }}
+          restore-keys: rust-fedora43-
 
       - name: Install frontend dependencies
         run: |
@@ -65,7 +68,9 @@ jobs:
           fi
 
       - name: Install Tauri CLI
-        run: cargo install tauri-cli --version "^2"
+        run: |
+          curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
+          cargo binstall tauri-cli --version "^2" --no-confirm
 
       - name: Inject version from tag into Cargo.toml
         if: startsWith(github.ref, 'refs/tags/v')
@@ -124,13 +129,13 @@ jobs:
           chmod +x AppDir/AppRun
 
           # Download appimagetool and package
-          curl -Lo appimagetool https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
+          curl -Lo appimagetool https://github.com/AppImage/appimagetool/releases/download/1.9.1/appimagetool-x86_64.AppImage
           chmod +x appimagetool
           ARCH=x86_64 ./appimagetool AppDir "${OUTDIR}/${APP}_${VERSION}_amd64.AppImage"
 
       - name: Upload AppImage artifact
         if: ${{ !startsWith(github.ref, 'refs/tags/') }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: Twister-AppImage
           path: src-tauri/target/release/bundle/appimage/Twister_*.AppImage
@@ -139,7 +144,6 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         id: notes
         run: |
-          git config --global --add safe.directory "$GITHUB_WORKSPACE"
           TAG="${GITHUB_REF_NAME}"
 
           # Find the previous tag to diff against
