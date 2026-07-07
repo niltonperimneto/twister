@@ -47,11 +47,6 @@ export interface KeyboardDeviceDto {
   keymap: number[][];
 }
 
-/* Discriminated union for the unified sidebar device list (mice + keyboards). */
-export type UnifiedDevice =
-  | ({ kind: 'mouse' } & DeviceSummary)
-  | ({ kind: 'keyboard' } & KeyboardSummary);
-
 export interface DeviceDto {
   path: string;
   name: string;

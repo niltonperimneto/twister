@@ -16,6 +16,8 @@ tauri-plugin-shell = "2.3"
 tauri-plugin-updater = "2"
 tauri-plugin-process = "2"
 serde = { version = "1.0", features = ["derive"] }
+# Not imported by our code, but tauri::generate_context! expands to
+# `::serde_json` paths in this crate — removing it breaks the build.
 serde_json = "1.0"
 tokio = { version = "1.52", features = ["rt-multi-thread", "sync", "time", "macros"] }
 zbus = { version = "5.16", default-features = false, features = ["tokio"] }
