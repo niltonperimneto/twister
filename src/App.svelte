@@ -8,6 +8,7 @@
     import { themeStore } from "$lib/stores/theme.svelte";
     import { updaterStore } from "$lib/stores/updater.svelte";
     import { getToasts, addToast } from "$lib/stores/toast.svelte";
+    import { DUR, duration, easeOut } from "$lib/motion";
     import type { View } from "$lib/types";
     import Titlebar from "$lib/components/Titlebar.svelte";
     import Sidebar from "$lib/components/Sidebar.svelte";
@@ -229,8 +230,13 @@
             {#key currentView}
                 <div
                     class="absolute inset-0 flex flex-col"
-                    in:fly={{ y: 8, duration: 200, delay: 80 }}
-                    out:fade={{ duration: 120 }}
+                    in:fly={{
+                        y: 8,
+                        duration: duration(DUR.base),
+                        delay: duration(80),
+                        easing: easeOut,
+                    }}
+                    out:fade={{ duration: duration(DUR.fast) }}
                 >
                     {#if currentView === "welcome"}
                         <WelcomePage onNavigate={handleNavigate} />
@@ -403,10 +409,17 @@
                                                 <div
                                                     in:fly={{
                                                         y: 12,
-                                                        duration: 250,
-                                                        delay: 60,
+                                                        duration: duration(
+                                                            DUR.base,
+                                                        ),
+                                                        delay: duration(60),
+                                                        easing: easeOut,
                                                     }}
-                                                    out:fade={{ duration: 100 }}
+                                                    out:fade={{
+                                                        duration: duration(
+                                                            DUR.fast,
+                                                        ),
+                                                    }}
                                                 >
                                                     {#if activeTab === "dpi"}
                                                         <DpiEditor
@@ -525,7 +538,7 @@
         >
             {#each getToasts() as toast (toast.id)}
                 <div
-                    transition:fade={{ duration: 150 }}
+                    transition:fade={{ duration: duration(DUR.fast) }}
                     class="alert {toast.kind === 'error'
                         ? 'alert-error'
                         : 'alert-info'} text-xs py-2 px-3 shadow-lg"

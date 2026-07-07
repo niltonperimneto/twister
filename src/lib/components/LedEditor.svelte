@@ -265,10 +265,16 @@
         {@const hex = rgbToHex(led.color)}
 
         <div class="led-zone {isOpen ? 'led-zone-open' : ''}">
-            <button onclick={() => toggleZone(led.index)} class="led-zone-header">
+            <button
+                onclick={() => toggleZone(led.index)}
+                class="led-zone-header"
+                aria-expanded={isOpen}
+                aria-label="LED {led.index} settings, current mode {LED_MODES[led.mode] ?? `Mode ${led.mode}`}"
+            >
                 <div class="flex items-center gap-2.5">
                     <div
                         class="w-3.5 h-3.5 rounded-full shrink-0"
+                        aria-hidden="true"
                         style="background: {hex}; box-shadow: 0 0 8px {hex}55, inset 0 1px 0 rgba(255,255,255,.15);"
                     ></div>
                     <span class="text-sm font-medium">LED {led.index}</span>
@@ -280,6 +286,7 @@
                     class="w-3.5 h-3.5 opacity-40 transition-transform duration-200 {isOpen ? 'rotate-180' : ''}"
                     viewBox="0 0 24 24" fill="none" stroke="currentColor"
                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                    aria-hidden="true"
                 ><polyline points="6 9 12 15 18 9" /></svg>
             </button>
 
@@ -316,6 +323,7 @@
                                 <div class="flex items-center gap-3">
                                     <div
                                         class="w-14 h-14 rounded-lg shrink-0 ring-1 ring-white/10 transition-[background] duration-150"
+                                        aria-hidden="true"
                                         style="background: {hex}; box-shadow: 0 0 18px {hex}40, inset 0 1px 0 rgba(255,255,255,.12);"
                                     ></div>
                                     <div class="flex-1 flex flex-col gap-1 min-w-0">
@@ -330,6 +338,7 @@
                                                 type="text"
                                                 maxlength="6"
                                                 spellcheck="false"
+                                                aria-label="Hex color code"
                                                 value={hexInput.replace("#", "")}
                                                 oninput={(e) => applyHex(e.currentTarget.value)}
                                                 class="join-item input input-sm font-mono uppercase text-xs flex-1 tracking-widest"
@@ -348,6 +357,8 @@
                                         <input
                                             type="range" min="0" max="360" step="1"
                                             value={h}
+                                            aria-label="Hue"
+                                            aria-valuetext="{h} degrees"
                                             oninput={(e) => applyHsl(Number(e.currentTarget.value), s, l)}
                                             class="slider slider-swatch hsl-h"
                                         />
@@ -358,6 +369,8 @@
                                         <input
                                             type="range" min="0" max="100" step="1"
                                             value={s}
+                                            aria-label="Saturation"
+                                            aria-valuetext="{s}%"
                                             oninput={(e) => applyHsl(h, Number(e.currentTarget.value), l)}
                                             class="slider slider-swatch hsl-s"
                                         />
@@ -368,6 +381,8 @@
                                         <input
                                             type="range" min="0" max="100" step="1"
                                             value={l}
+                                            aria-label="Lightness"
+                                            aria-valuetext="{l}%"
                                             oninput={(e) => applyHsl(h, s, Number(e.currentTarget.value))}
                                             class="slider slider-swatch hsl-l"
                                         />
@@ -442,6 +457,8 @@
                             <input
                                 type="range" min="0" max="255" step="1"
                                 value={led.brightness}
+                                aria-label="Brightness"
+                                aria-valuetext="{Math.round((led.brightness / 255) * 100)}%"
                                 oninput={(e) => applyBrightness(led, Number(e.currentTarget.value))}
                                 class="slider"
                             />
@@ -459,6 +476,8 @@
                                 <input
                                     type="range" min="0" max="10000" step="100"
                                     value={led.effect_duration}
+                                    aria-label="Effect duration"
+                                    aria-valuetext="{led.effect_duration} milliseconds"
                                     oninput={(e) => applyDuration(led, Number(e.currentTarget.value))}
                                     class="slider"
                                 />
@@ -524,7 +543,7 @@
         box-shadow:
             0 1px 3px rgba(0, 0, 0, 0.4),
             inset 0 1px 0 rgba(255, 255, 255, 0.12);
-        transition: transform 100ms ease, box-shadow 100ms ease;
+        transition: transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) ease;
         cursor: pointer;
     }
     .preset-swatch:hover {

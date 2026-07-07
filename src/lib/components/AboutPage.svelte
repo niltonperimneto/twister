@@ -2,6 +2,7 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { fade } from "svelte/transition";
+    import { DUR, duration } from "$lib/motion";
     import { getVersion } from "@tauri-apps/api/app";
     import auraLogo from "$lib/assets/aura-logo.svg";
     import { openUrl } from "$lib/ipc/commands";
@@ -42,7 +43,7 @@
 
 <div
     class="flex-1 flex justify-center p-8 overflow-y-auto"
-    in:fade={{ duration: 250 }}
+    in:fade={{ duration: duration(DUR.base) }}
     out:fade={{ duration: 150 }}
 >
     <div class="max-w-md w-full flex flex-col items-center gap-6 my-auto">

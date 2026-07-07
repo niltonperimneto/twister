@@ -103,7 +103,7 @@
   <div class="editor-card">
     <div class="editor-card-header">
       <h3 class="text-sm font-medium flex items-center gap-2">
-        <svg class="w-3.5 h-3.5 opacity-60 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <svg class="w-3.5 h-3.5 opacity-60 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         Polling Rate
       </h3>
       <span class="text-xs font-mono text-primary font-bold">{localReportRate} Hz</span>
@@ -129,7 +129,10 @@
   {#each profile.resolutions as res, i (res.index)}
     {@const dpi = localDpis[i] ?? res.dpi_x}
     {@const isClickable = !res.is_active && !res.is_disabled}
-    <div 
+    <!-- Card-wide click is a pointer convenience; the radio inside is the
+         accessible (keyboard/screen-reader) control for the same action. -->
+    <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
+    <div
       onclick={(e) => {
         const target = e.target as HTMLElement;
         if (target.closest('input[type="range"]')) return;
@@ -139,11 +142,12 @@
     >
       <div class="editor-card-header">
         <div class="flex items-center gap-3">
-          <input 
-            type="radio" 
-            name="active_dpi_stage" 
-            checked={res.is_active} 
+          <input
+            type="radio"
+            name="active_dpi_stage"
+            checked={res.is_active}
             disabled={res.is_disabled}
+            aria-label="Use stage {res.index} as the active DPI"
             class="radio radio-primary radio-xs cursor-pointer disabled:opacity-30"
             onclick={(e) => {
               e.stopPropagation();
@@ -163,6 +167,7 @@
       </div>
 
       {#if res.dpi_list.length > 0}
+        <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
         <div class="flex flex-col gap-1.5" onclick={(e) => e.stopPropagation()}>
           <input
             type="range"
@@ -171,9 +176,11 @@
             max={Math.max(...res.dpi_list)}
             step={dpiStep(res.dpi_list)}
             value={dpi}
+            aria-label="Stage {res.index} DPI"
+            aria-valuetext="{dpi} DPI"
             oninput={(e) => debouncedDpiWrite(res, i, Number(e.currentTarget.value))}
           />
-          <div class="flex justify-between px-0.5">
+          <div class="flex justify-between px-0.5" aria-hidden="true">
             <span class="text-[9px] font-mono text-base-content/30">{Math.min(...res.dpi_list)}</span>
             <span class="text-[9px] font-mono text-base-content/30">{Math.max(...res.dpi_list)}</span>
           </div>

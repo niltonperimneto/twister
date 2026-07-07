@@ -18,8 +18,18 @@ jobs:
 
     steps:
       - name: Install system dependencies
+        # --disablerepo='*openh264*': the fedora-cisco-openh264 repo is served
+        #   from a single Cisco host with no mirrors and regularly times out,
+        #   killing the whole job ("All mirrors were tried"). Nothing we need
+        #   lives there — openh264 only comes in as a weak dependency.
+        # install_weak_deps=False: skip recommended packages (multimedia
+        #   codecs, pipewire, …) that a headless build container never uses.
+        # retries=5: ride out transient mirror hiccups instead of failing.
         run: |
           dnf install -y \
+            --disablerepo='*openh264*' \
+            --setopt=install_weak_deps=False \
+            --setopt=retries=5 \
             webkit2gtk4.1-devel \
             gtk3-devel \
             libsoup3-devel \
@@ -45,7 +55,7 @@ jobs:
 
       - name: Setup Rust toolchain
         run: |
-          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+          curl --proto '=https' --tlsv1.2 -sSf --retry 5 --retry-delay 2 https://sh.rustup.rs | sh -s -- -y
           echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
       - name: Install Bun
@@ -73,7 +83,7 @@ jobs:
 
       - name: Install Tauri CLI
         run: |
-          curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
+          curl -L --proto '=https' --tlsv1.2 -sSf --retry 5 --retry-delay 2 https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
           cargo binstall tauri-cli --version "^2" --no-confirm
 
       - name: Verify tag matches Cargo.toml (drift guard)
@@ -109,23 +119,22 @@ jobs:
             VERSION=$(sed -n 's/.*"version": *"\([^"]*\)".*/\1/p' src-tauri/tauri.conf.json | head -1)
           fi
 
-          # Build AppDir with just the binary (no bundled libs - use system libs)
-          mkdir -p AppDir/usr/bin
-          mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps
-          cp src-tauri/target/release/$BINARY AppDir/usr/bin/
-          cp src-tauri/icons/128x128@2x.png AppDir/usr/share/icons/hicolor/256x256/apps/${BINARY}.png
-          cp src-tauri/icons/128x128@2x.png AppDir/${BINARY}.png
+          # Build AppDir with just the binary (no bundled libs - use system libs).
+          # Mirrors scripts/build-appimage.sh so local and CI artifacts match.
+          install -Dm755 src-tauri/target/release/$BINARY AppDir/usr/bin/$BINARY
+          install -Dm644 src-tauri/icons/128x128@2x.png \
+            AppDir/usr/share/icons/hicolor/256x256/apps/${BINARY}.png
+          install -Dm644 src-tauri/icons/128x128@2x.png AppDir/${BINARY}.png
 
-          # Create desktop file
-          cat > AppDir/${BINARY}.desktop <<'DESKTOP'
-          [Desktop Entry]
-          Name=Twister
-          Exec=twister
-          Icon=twister
-          Type=Application
-          Categories=Utility;
-          DESKTOP
-          sed -i 's/^          //' AppDir/${BINARY}.desktop
+          # Desktop entry: canonical .desktop with the Icon field rewritten to
+          # "twister" to match the AppDir's top-level twister.png.
+          install -Dm644 io.github.niltonperimneto.Twister.desktop \
+            AppDir/${BINARY}.desktop
+          sed -i 's|^Icon=.*|Icon=twister|' AppDir/${BINARY}.desktop
+
+          # AppStream metainfo — lets appimaged / GNOME Software identify the bundle.
+          install -Dm644 io.github.niltonperimneto.Twister.metainfo.xml \
+            AppDir/usr/share/metainfo/io.github.niltonperimneto.Twister.metainfo.xml
 
           # Create AppRun
           cat > AppDir/AppRun <<'APPRUN'
@@ -137,8 +146,9 @@ jobs:
           sed -i 's/^          //' AppDir/AppRun
           chmod +x AppDir/AppRun
 
-          # Download appimagetool and package
-          curl -Lo appimagetool https://github.com/AppImage/appimagetool/releases/download/1.9.1/appimagetool-x86_64.AppImage
+          # Download appimagetool and package (retry transient network failures)
+          curl -fL --retry 5 --retry-delay 2 --retry-all-errors -o appimagetool \
+            https://github.com/AppImage/appimagetool/releases/download/1.9.1/appimagetool-x86_64.AppImage
           chmod +x appimagetool
           ARCH=x86_64 ./appimagetool AppDir "${OUTDIR}/${APP}_${VERSION}_amd64.AppImage"
 

@@ -2,6 +2,7 @@
 <script lang="ts">
     import type { DaemonStatus } from "$lib/types";
     import { fade } from "svelte/transition";
+    import { DUR, duration } from "$lib/motion";
 
     interface Props {
         status: DaemonStatus;
@@ -19,7 +20,7 @@
 
 {#if status.status === "disconnected" || error}
     <div
-        transition:fade={{ duration: 150 }}
+        transition:fade={{ duration: duration(DUR.fast) }}
         class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xl"
     >
         <div class="editor-card max-w-xs w-full mx-4 text-center p-6! gap-4!">
