@@ -10,7 +10,6 @@
     } from "$lib/ipc/commands";
     import { addToast } from "$lib/stores/toast.svelte";
     import { tick } from "svelte";
-    import iro from "@jaames/iro";
 
     interface Props {
         profile: ProfileDto;
@@ -23,11 +22,13 @@
     let expandedIndex: number | null = $state(null);
     let lastProfilePath = "";
 
-    /* iro.js instance management */
-    let pickerEl: HTMLDivElement | null = $state(null);
-    let colorPicker: any = null;
+    /* Color picker state */
     let hexInput: string = $state("");
-    let suppressPickerSync = false;
+    let currentRgb = $derived(
+        HEX_RE.test(hexInput.startsWith("#") ? hexInput : "#" + hexInput)
+            ? hexToRgb(hexInput.startsWith("#") ? hexInput : "#" + hexInput)
+            : { r: 0, g: 0, b: 0 }
+    );
 
     $effect(() => {
         if (profile.path === lastProfilePath) return;
@@ -35,57 +36,13 @@
         localLeds = $state.snapshot(profile.leds) as LedDto[];
     });
 
-    /* Destroy picker whenever the zone changes or component unmounts */
-    function destroyPicker() {
-        if (colorPicker) {
-            try {
-                colorPicker.base.remove();
-            } catch {}
-            colorPicker = null;
-        }
-    }
-
-    function mountPicker(el: HTMLDivElement, hex: string) {
-        el.innerHTML = "";
-        colorPicker = (iro.ColorPicker as any)(el, {
-            width: 180,
-            color: hex,
-            layoutDirection: "vertical",
-            borderWidth: 1,
-            borderColor: "rgba(255,255,255,0.06)",
-            handleRadius: 7,
-            wheelLightness: true,
-            layout: [{ component: iro.ui.Wheel, options: {} }],
-        });
-        colorPicker.on("color:change", (color: { hexString: string }) => {
-            if (suppressPickerSync) return;
-            hexInput = color.hexString.toUpperCase();
-            const activeLed = localLeds.find((l) => l.index === expandedIndex);
-            if (activeLed) colorWrite(activeLed, color.hexString);
-        });
-    }
-
-    /* When expanded LED changes, tear down old picker and create a new one */
+    /* When expanded LED changes, update hex input */
     $effect(() => {
         const idx = expandedIndex;
-        destroyPicker();
         if (idx === null) return;
-
         const led = localLeds.find((l) => l.index === idx);
         if (!led) return;
-        const hex = rgbToHex(led.color);
-        hexInput = hex.toUpperCase();
-
-        tick().then(() => {
-            if (pickerEl && expandedIndex === idx) {
-                mountPicker(pickerEl, hex);
-            }
-        });
-    });
-
-    /* Cleanup on unmount */
-    $effect(() => {
-        return () => destroyPicker();
+        hexInput = rgbToHex(led.color).toUpperCase();
     });
 
     /* Shared debounce factory — each call returns an independent debounced fn */
@@ -122,13 +79,15 @@
         hexInput = raw;
         const normalized = raw.startsWith("#") ? raw : "#" + raw;
         if (!HEX_RE.test(normalized)) return;
-        if (colorPicker) {
-            suppressPickerSync = true;
-            colorPicker.color.hexString = normalized;
-            suppressPickerSync = false;
-        }
         const activeLed = localLeds.find((l) => l.index === expandedIndex);
         if (activeLed) colorWrite(activeLed, normalized);
+    }
+
+    function handleRgbInput(r: number, g: number, b: number) {
+        const hex = rgbToHex({ r, g, b });
+        hexInput = hex.toUpperCase();
+        const activeLed = localLeds.find((l) => l.index === expandedIndex);
+        if (activeLed) colorWrite(activeLed, hex);
     }
 
     function needsSecondary(mode: number): boolean {
@@ -281,9 +240,20 @@
                             >
 
                             <div class="flex gap-5 items-start">
-                                <!-- Triangle wheel -->
-                                <div class="led-picker-wrapper">
-                                    <div bind:this={pickerEl}></div>
+                                <!-- RGB Sliders -->
+                                <div class="flex flex-col justify-center gap-3 w-40 shrink-0">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-[10px] font-bold text-red-400 w-3">R</span>
+                                        <input type="range" min="0" max="255" value={currentRgb.r} oninput={(e) => handleRgbInput(Number(e.currentTarget.value), currentRgb.g, currentRgb.b)} class="range range-error range-xs w-full" />
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-[10px] font-bold text-green-400 w-3">G</span>
+                                        <input type="range" min="0" max="255" value={currentRgb.g} oninput={(e) => handleRgbInput(currentRgb.r, Number(e.currentTarget.value), currentRgb.b)} class="range range-success range-xs w-full" />
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-[10px] font-bold text-blue-400 w-3">B</span>
+                                        <input type="range" min="0" max="255" value={currentRgb.b} oninput={(e) => handleRgbInput(currentRgb.r, currentRgb.g, Number(e.currentTarget.value))} class="range range-info range-xs w-full" />
+                                    </div>
                                 </div>
 
                                 <!-- HEX + secondary/tertiary stack -->

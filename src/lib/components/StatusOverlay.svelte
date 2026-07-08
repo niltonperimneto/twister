@@ -52,8 +52,14 @@
                 is running:<br />
                 <code
                     class="font-mono bg-base-300/50 px-1.5 py-0.5 rounded mt-1 inline-block"
+                    >systemctl --user start ratbagd</code
+                >
+                <span class="opacity-60">(libratbag-rs)</span><br />
+                <code
+                    class="font-mono bg-base-300/50 px-1.5 py-0.5 rounded mt-1 inline-block"
                     >sudo systemctl start ratbagd</code
                 >
+                <span class="opacity-60">(legacy)</span>
             </div>
 
             <button

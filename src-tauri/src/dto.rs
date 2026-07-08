@@ -15,7 +15,11 @@ use serde::{Deserialize, Serialize};
 #[serde(tag = "status")]
 pub enum DaemonStatus {
     #[serde(rename = "connected")]
-    Connected { api_version: i32 },
+    Connected {
+        api_version: i32,
+        /// `"session"` for libratbag-rs, `"system"` for legacy C libratbag.
+        bus_type: String,
+    },
     #[serde(rename = "disconnected")]
     Disconnected { reason: String },
 }
