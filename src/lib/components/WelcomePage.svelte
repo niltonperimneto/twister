@@ -1,7 +1,9 @@
-<!-- WelcomePage — animated landing view, consistent with app design system -->
+<!-- WelcomePage — aesthetic startup splash screen -->
 <script lang="ts">
-    import { fly, fade } from "svelte/transition";
+    import { onMount } from "svelte";
+    import { fade, fly } from "svelte/transition";
     import type { View } from "../types";
+    import { deviceStore } from "$lib/stores/device.svelte";
     import auraLogo from "$lib/assets/aura-logo.svg";
 
     interface Props {
@@ -9,300 +11,114 @@
     }
 
     let { onNavigate }: Props = $props();
+
+    onMount(() => {
+        // Fast 1100ms play window before checking hardware status to keep the app feeling snappy
+        const finalTimer = setTimeout(() => {
+            const checkAndNavigate = () => {
+                if (!deviceStore.loading) {
+                    onNavigate("devices");
+                } else {
+                    setTimeout(checkAndNavigate, 50);
+                }
+            };
+            checkAndNavigate();
+        }, 1100);
+
+        return () => clearTimeout(finalTimer);
+    });
 </script>
 
 <div
-    class="relative flex-1 flex flex-col items-center overflow-y-auto p-8"
-    in:fade={{ duration: 250 }}
-    out:fade={{ duration: 150 }}
+    class="relative flex-1 flex flex-col items-center justify-center overflow-hidden p-8 min-h-full select-none"
+    in:fade={{ duration: 400 }}
+    out:fade={{ duration: 300 }}
 >
-    <!-- Animated background orbs — subtle ambient glow -->
+    <!-- Liquid-like dynamic floating orbs in the background -->
     <div class="absolute inset-0 z-0 pointer-events-none overflow-hidden">
         <div
-            class="absolute left-1/4 top-1/4 w-[320px] h-80 rounded-full bg-primary/10 blur-[100px] animate-aura-spin origin-bottom-right"
+            class="absolute left-1/4 top-1/4 w-[450px] h-[450px] rounded-full bg-primary/10 blur-[130px] animate-orb-drift origin-center"
         ></div>
         <div
-            class="absolute right-1/4 bottom-1/4 w-65 h-65 rounded-full bg-secondary/10 blur-[100px] animate-aura-float origin-top-left"
-        ></div>
-        <div
-            class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-55 h-55 rounded-full bg-accent/10 blur-[80px] animate-aura-pulse"
+            class="absolute right-1/4 bottom-1/4 w-[380px] h-[380px] rounded-full bg-secondary/8 blur-[130px] animate-orb-float origin-center"
         ></div>
     </div>
 
-    <div
-        class="relative z-10 max-w-lg w-full flex flex-col items-center gap-6 my-auto"
+    <!-- Minimalist Glassmorphic Presentation -->
+    <div 
+        class="relative z-10 flex flex-col items-center max-w-sm w-full p-10 rounded-3xl border border-white/5 bg-white/[0.015] backdrop-blur-2xl text-center"
+        style="box-shadow: 0 30px 70px -20px rgba(0, 0, 0, 0.45), inset 0 1px 0 0 rgba(255, 255, 255, 0.05), 0 0 50px -10px oklch(0.74 0.16 248 / 0.05);"
+        in:fly={{ y: 15, duration: 900 }}
     >
-        <!-- Logo + Title -->
-        <div
-            class="flex flex-col items-center gap-3"
-            in:fly={{ y: 30, duration: 600 }}
-        >
-            <div class="relative">
-                <img
-                    src={auraLogo}
-                    alt="Twister logo"
-                    class="w-28 h-28 drop-shadow-[0_4px_12px_rgba(0,0,0,0.3)] aura-logo-sharp"
-                />
-            </div>
-            <h1
-                class="text-2xl font-bold tracking-wide bg-linear-to-r from-primary via-secondary to-accent bg-clip-text text-transparent"
+        <!-- Floating Logo in a soft glowing orb -->
+        <div class="relative w-28 h-28 flex items-center justify-center mb-8">
+            <div class="absolute inset-0 rounded-full bg-primary/5 blur-md animate-pulse"></div>
+            <div class="absolute inset-2 rounded-full border border-white/5 animate-pulse"></div>
+            <img
+                src={auraLogo}
+                alt="Twister logo"
+                class="w-16 h-16 relative drop-shadow-[0_0_12px_rgba(114,137,218,0.2)] animate-logo-float"
+            />
+        </div>
+
+        <!-- Sleek branding with wide letter-spacing -->
+        <div class="flex flex-col items-center gap-3">
+            <h1 
+                class="text-2xl font-light tracking-[0.4em] bg-gradient-to-r from-base-content via-base-content/90 to-base-content/50 bg-clip-text text-transparent"
+                style="font-family: var(--font-display); text-shadow: 0 0 30px rgba(255,255,255,0.05);"
+                in:fly={{ y: 10, duration: 800, delay: 150 }}
             >
-                Welcome to Twister
+                TWISTER
             </h1>
-            <p
-                class="text-sm text-base-content/60 leading-relaxed text-center max-w-sm"
-                in:fade={{ duration: 500, delay: 200 }}
+            
+            <div 
+                class="w-8 h-[1px] bg-linear-to-r from-primary to-secondary opacity-60 my-1"
+                in:fade={{ duration: 600, delay: 300 }}
+            ></div>
+
+            <p 
+                class="text-xs text-base-content/50 font-normal leading-relaxed tracking-wide max-w-[280px]"
+                in:fly={{ y: 10, duration: 800, delay: 400 }}
             >
-                A desktop agnostic GUI for Linux gaming mice. Built on top of
-                the
-                <span class="font-semibold text-base-content/80">ratbagd</span>
-                D-Bus protocol, Twister works with both
-                <span class="font-semibold text-base-content/80"
-                    >libratbag-rs</span
-                > (the modern Rust session daemon) and the legacy C
-                <span class="font-semibold text-base-content/80">libratbag</span
-                >, automatically detecting which is available.
+                Precision control. Refined design.
             </p>
         </div>
 
-        <!-- What makes this different -->
-        <div
-            class="editor-card w-full gap-4!"
-            in:fly={{ y: 30, duration: 600, delay: 150 }}
+        <!-- Subtle breathing pulse loader -->
+        <div 
+            class="flex items-center gap-1.5 mt-8 opacity-45"
+            in:fade={{ duration: 600, delay: 500 }}
         >
-            <h2
-                class="text-sm font-semibold text-base-content/70 uppercase tracking-widest text-center"
-            >
-                Why Twister?
-            </h2>
-            <div class="flex flex-col gap-3">
-                <div class="flex items-start gap-3">
-                    <div
-                        class="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center shrink-0"
-                    >
-                        <!-- Rust gear icon -->
-                        <svg
-                            class="w-4 h-4 text-primary"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="1.8"
-                            stroke-linecap="round"
-                        >
-                            <circle cx="12" cy="12" r="3" /><path
-                                d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"
-                            />
-                        </svg>
-                    </div>
-                    <div>
-                        <p class="text-sm font-medium">Rewritten in Rust</p>
-                        <p class="text-xs text-base-content/40">
-                            libratbag-rs is replacing the legacy C daemon with
-                            memory safe, fearlessly concurrent code, making
-                            undefined behavior and fragile pointer chains a
-                            thing of the past.
-                        </p>
-                    </div>
-                </div>
-
-                <div class="flex items-start gap-3">
-                    <div
-                        class="w-8 h-8 rounded-lg bg-secondary/15 flex items-center justify-center shrink-0"
-                    >
-                        <svg
-                            class="w-4 h-4 text-secondary"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="1.8"
-                            stroke-linecap="round"
-                        >
-                            <rect
-                                x="2"
-                                y="3"
-                                width="20"
-                                height="14"
-                                rx="2"
-                            /><line x1="8" y1="21" x2="16" y2="21" /><line
-                                x1="12"
-                                y1="17"
-                                x2="12"
-                                y2="21"
-                            />
-                        </svg>
-                    </div>
-                    <div>
-                        <p class="text-sm font-medium">Desktop Agnostic</p>
-                        <p class="text-xs text-base-content/40">
-                            Works on any Linux desktop, including GNOME, KDE,
-                            Sway, and bare window managers. No GNOME Shell
-                            extensions or KDE widgets required.
-                        </p>
-                    </div>
-                </div>
-
-                <div class="flex items-start gap-3">
-                    <div
-                        class="w-8 h-8 rounded-lg bg-accent/15 flex items-center justify-center shrink-0"
-                    >
-                        <svg
-                            class="w-4 h-4 text-accent"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="1.8"
-                            stroke-linecap="round"
-                        >
-                            <path
-                                d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"
-                            />
-                        </svg>
-                    </div>
-                    <div>
-                        <p class="text-sm font-medium">Modern D-Bus Protocol</p>
-                        <p class="text-xs text-base-content/40">
-                            Twister communicates with hardware via the standard
-                            ratbagd D-Bus interface. This ensures full backwards
-                            compatibility with the original libratbag while we
-                            migrate to libratbag-rs.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Quick Start -->
-        <div
-            class="editor-card w-full gap-4!"
-            in:fly={{ y: 30, duration: 600, delay: 300 }}
-        >
-            <h2
-                class="text-sm font-semibold text-base-content/70 uppercase tracking-widest text-center"
-            >
-                Quick Start
-            </h2>
-
-            <div class="flex flex-col gap-3">
-                <div class="flex items-start gap-3">
-                    <div
-                        class="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center shrink-0"
-                    >
-                        <span class="text-sm font-bold text-primary">1</span>
-                    </div>
-                    <div>
-                        <p class="text-sm font-medium">Connect your mouse</p>
-                        <p class="text-xs text-base-content/40">
-                            Plug in a supported gaming mouse via USB or wireless
-                            receiver.
-                        </p>
-                    </div>
-                </div>
-
-                <div class="flex items-start gap-3">
-                    <div
-                        class="w-8 h-8 rounded-lg bg-secondary/15 flex items-center justify-center shrink-0"
-                    >
-                        <span class="text-sm font-bold text-secondary">2</span>
-                    </div>
-                    <div>
-                        <p class="text-sm font-medium">Select a device</p>
-                        <p class="text-xs text-base-content/40">
-                            Open the sidebar and choose your mouse from the
-                            Devices list.
-                        </p>
-                    </div>
-                </div>
-
-                <div class="flex items-start gap-3">
-                    <div
-                        class="w-8 h-8 rounded-lg bg-accent/15 flex items-center justify-center shrink-0"
-                    >
-                        <span class="text-sm font-bold text-accent">3</span>
-                    </div>
-                    <div>
-                        <p class="text-sm font-medium">Customize & apply</p>
-                        <p class="text-xs text-base-content/40">
-                            Adjust DPI, button mappings, and LED effects, then
-                            hit Apply to save.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- CTA -->
-        <div in:fly={{ y: 30, duration: 600, delay: 500 }}>
-            <button
-                onclick={() => onNavigate("devices")}
-                class="btn btn-primary btn-sm gap-1.5"
-            >
-                <svg
-                    class="w-3.5 h-3.5"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    ><rect x="6" y="2" width="12" height="20" rx="6" /><line
-                        x1="12"
-                        y1="2"
-                        x2="12"
-                        y2="10"
-                    /></svg
-                >
-                Go to Devices
-            </button>
+            <span class="w-1.5 h-1.5 rounded-full bg-primary animate-ping"></span>
+            <span class="text-[8px] font-mono tracking-[0.2em] text-base-content/40 uppercase">Loading</span>
         </div>
     </div>
-
-    <style>
-        @keyframes aura-spin {
-            0% {
-                transform: rotate(0deg) scale(1);
-            }
-            50% {
-                transform: rotate(180deg) scale(1.05);
-            }
-            100% {
-                transform: rotate(360deg) scale(1);
-            }
-        }
-        @keyframes aura-float {
-            0%,
-            100% {
-                transform: translate(0px, 0px) scale(1);
-            }
-            33% {
-                transform: translate(20px, -30px) scale(1.05);
-            }
-            66% {
-                transform: translate(-15px, 15px) scale(0.95);
-            }
-        }
-        @keyframes aura-pulse {
-            0%,
-            100% {
-                opacity: 0.5;
-                transform: scale(1);
-            }
-            50% {
-                opacity: 0.8;
-                transform: scale(1.03);
-            }
-        }
-        .animate-aura-spin {
-            animation: aura-spin 30s ease-in-out infinite;
-        }
-        .animate-aura-float {
-            animation: aura-float 24s ease-in-out infinite;
-        }
-        .animate-aura-pulse {
-            animation: aura-pulse 10s ease-in-out infinite;
-        }
-        .aura-logo-sharp {
-            image-rendering: crisp-edges;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: optimizeQuality;
-        }
-    </style>
 </div>
+
+<style>
+    @keyframes orb-drift {
+        0% { transform: translate(0px, 0px) scale(1); }
+        50% { transform: translate(25px, -25px) scale(1.05); }
+        100% { transform: translate(0px, 0px) scale(1); }
+    }
+    @keyframes orb-float {
+        0%, 100% { transform: translate(0px, 0px) scale(1); }
+        50% { transform: translate(-25px, 25px) scale(1.03); }
+    }
+    @keyframes logo-float {
+        0%, 100% { transform: translateY(0px) scale(1); }
+        50% { transform: translateY(-4px) scale(1.02); }
+    }
+    .animate-orb-drift {
+        animation: orb-drift 15s ease-in-out infinite;
+    }
+    .animate-orb-float {
+        animation: orb-float 18s ease-in-out infinite;
+    }
+    .animate-logo-float {
+        animation: logo-float 4s ease-in-out infinite;
+    }
+</style>
+
+
+

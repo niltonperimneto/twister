@@ -4,11 +4,12 @@
  * the Tauri event loop.  The Rust backend owns all system-bus communication
  * with ratbagd; the Svelte frontend receives normalised JSON payloads only. */
 
+mod clackd_client;
 mod commands;
 mod dbus_client;
 mod dto;
 
-use commands::DaemonState;
+use commands::{DaemonState, KeyboardState};
 
 fn main() {
     tracing_subscriber::fmt()
@@ -22,7 +23,10 @@ fn main() {
 
     if let Err(e) = tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_process::init())
         .manage(DaemonState::default())
+        .manage(KeyboardState::default())
         .invoke_handler(tauri::generate_handler![
             commands::connect_daemon,
             commands::list_devices,
@@ -37,6 +41,14 @@ fn main() {
             commands::set_led_effect_duration,
             commands::commit_device,
             commands::detect_surface_mode,
+            commands::connect_clackd,
+            commands::list_keyboards,
+            commands::get_keyboard,
+            commands::get_keymap,
+            commands::set_keycode,
+            commands::commit_keyboard,
+            commands::get_keyboard_lighting,
+            commands::set_keyboard_lighting,
         ])
         .run(tauri::generate_context!())
     {

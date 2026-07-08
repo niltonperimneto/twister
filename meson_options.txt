@@ -1,0 +1,9 @@
+option('clackd',
+	type : 'feature',
+	value : 'enabled',
+	description : 'Build and install the clackd keyboard daemon (subproject)')
+
+option('ratbagd',
+	type : 'feature',
+	value : 'enabled',
+	description : 'Build and install the libratbag-rs mouse daemon (subproject)')

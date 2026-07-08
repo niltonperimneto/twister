@@ -286,35 +286,6 @@ code, kbd, samp, pre {
 }
 
 /* ------------------------------------------------------------------ */
-/* SVG interactive highlights                                          */
-/* ------------------------------------------------------------------ */
-
-.device-svg :global(svg) {
-    shape-rendering: geometricPrecision;
-}
-
-.device-svg [id^="button"],
-.device-svg [id^="led"] {
-    cursor: pointer;
-    opacity: 0;
-    transition:
-        opacity 0.25s ease,
-        filter 0.25s ease;
-}
-
-.device-svg [id^="button"]:hover,
-.device-svg [id^="led"]:hover,
-.device-svg .svg-highlight {
-    opacity: 1;
-    filter: brightness(2) drop-shadow(0 0 10px var(--color-primary));
-}
-
-.device-svg .svg-selected {
-    opacity: 1;
-    filter: brightness(2.5) drop-shadow(0 0 14px var(--color-primary));
-}
-
-/* ------------------------------------------------------------------ */
 /* Reduced motion                                                      */
 /* ------------------------------------------------------------------ */
 
@@ -387,6 +358,134 @@ code, kbd, samp, pre {
     box-shadow:
         inset 0 1px 0 0 oklch(1 0.05 248 / 0.12),
         0 4px 20px oklch(0.74 0.16 248 / 0.2);
+}
+
+.btn-ghost {
+    border-color: transparent;
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    box-shadow: none;
+    color: oklch(0.75 0 0);
+}
+
+.btn-ghost:hover {
+    border-color: transparent;
+    background: oklch(0.5 0 0 / 0.18);
+    color: oklch(0.92 0 0);
+    box-shadow: none;
+    transform: none;
+}
+
+.btn:disabled,
+.btn[disabled] {
+    opacity: 0.45;
+    pointer-events: none;
+    box-shadow: none;
+}
+
+/* ------------------------------------------------------------------ */
+/* Sliders — one glass slider for every range input                    */
+/* ------------------------------------------------------------------ */
+
+.slider {
+    -webkit-appearance: none;
+    appearance: none;
+    display: block;
+    width: 100%;
+    min-width: 0;
+    height: 18px;
+    background: transparent;
+    cursor: pointer;
+    --slider-track: linear-gradient(
+        to bottom,
+        oklch(0.2 0.01 265 / 0.9),
+        oklch(0.27 0.012 265 / 0.9)
+    );
+    --slider-thumb: linear-gradient(
+        to bottom,
+        oklch(0.88 0.08 248),
+        oklch(0.72 0.16 248)
+    );
+    --slider-thumb-border: oklch(0.74 0.16 248 / 0.6);
+    --slider-thumb-glow: oklch(0.74 0.16 248 / 0.35);
+}
+
+.slider::-webkit-slider-runnable-track {
+    height: 6px;
+    border-radius: var(--radius-full);
+    background: var(--slider-track);
+    box-shadow:
+        inset 0 0 0 1px oklch(1 0 0 / 0.07),
+        inset 0 1px 2px oklch(0 0 0 / 0.35);
+}
+
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    margin-top: -5px;
+    border-radius: var(--radius-full);
+    background: var(--slider-thumb);
+    border: 1px solid var(--slider-thumb-border);
+    box-shadow:
+        0 1px 4px oklch(0 0 0 / 0.5),
+        0 0 10px var(--slider-thumb-glow);
+    cursor: grab;
+    transition:
+        transform 150ms cubic-bezier(0.16, 1, 0.3, 1),
+        box-shadow 150ms ease;
+}
+
+.slider::-webkit-slider-thumb:hover {
+    transform: scale(1.12);
+    box-shadow:
+        0 1px 4px oklch(0 0 0 / 0.5),
+        0 0 14px var(--slider-thumb-glow);
+}
+
+.slider:active::-webkit-slider-thumb {
+    cursor: grabbing;
+    transform: scale(1.05);
+}
+
+.slider:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* Firefox — harmless under webkit2gtk, keeps browser-based dev honest */
+.slider::-moz-range-track {
+    height: 6px;
+    border-radius: var(--radius-full);
+    background: var(--slider-track);
+    box-shadow:
+        inset 0 0 0 1px oklch(1 0 0 / 0.07),
+        inset 0 1px 2px oklch(0 0 0 / 0.35);
+}
+
+.slider::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border-radius: var(--radius-full);
+    background: var(--slider-thumb);
+    border: 1px solid var(--slider-thumb-border);
+    box-shadow:
+        0 1px 4px oklch(0 0 0 / 0.5),
+        0 0 10px var(--slider-thumb-glow);
+    cursor: grab;
+}
+
+/* Color-channel variant: neutral white thumb over a gradient track */
+.slider-swatch {
+    --slider-thumb: linear-gradient(
+        to bottom,
+        oklch(0.99 0 0),
+        oklch(0.88 0 0)
+    );
+    --slider-thumb-border: oklch(0.25 0 0 / 0.8);
+    --slider-thumb-glow: oklch(0 0 0 / 0.3);
 }
 
 /* ------------------------------------------------------------------ */

@@ -6,3 +6,12 @@ src-tauri/gen/
 npm-debug.log*
 .DS_Store
 *.local
+.claude/
+
+# Meson build dir (NOT `build/` — that's the vite output above).
+/builddir/
+
+# Subproject checkouts, symlinks, and the resolved-revision lock that meson
+# populates from the .wrap files — keep only the .wrap files themselves.
+/subprojects/*
+!/subprojects/*.wrap
