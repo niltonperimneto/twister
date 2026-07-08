@@ -3,7 +3,7 @@
 export type View = "welcome" | "devices" | "about" | "donate";
 
 export type DaemonStatus =
-  | { status: 'connected'; api_version: number }
+  | { status: 'connected'; api_version: number; bus_type: 'session' | 'system' }
   | { status: 'disconnected'; reason: string };
 
 export interface DeviceSummary {

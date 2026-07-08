@@ -56,13 +56,12 @@
                 A desktop agnostic GUI for Linux gaming mice. Built on top of
                 the
                 <span class="font-semibold text-base-content/80">ratbagd</span>
-                D-Bus protocol, Twister maintains full backwards compatibility with
-                the original C
-                <span class="font-semibold text-base-content/80">libratbag</span
-                >, however, we strive to replace it with
+                D-Bus protocol, Twister works with both
                 <span class="font-semibold text-base-content/80"
                     >libratbag-rs</span
-                >: a safer, faster Rust implementation.
+                > (the modern Rust session daemon) and the legacy C
+                <span class="font-semibold text-base-content/80">libratbag</span
+                >, automatically detecting which is available.
             </p>
         </div>
 

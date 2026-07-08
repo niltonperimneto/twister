@@ -7,7 +7,7 @@ use tauri::{AppHandle, Emitter, State};
 use tokio::sync::RwLock;
 use tracing::{error, info, warn};
 
-use crate::dbus_client::RatbagClient;
+use crate::dbus_client::{BusType, RatbagClient};
 use crate::dto::{DaemonStatus, DeviceSummary, DeviceDto, ActionValueDto};
 
 /* ------------------------------------------------------------------ */
@@ -74,12 +74,16 @@ pub async fn connect_daemon(
     info!("connect_daemon called");
     let client_result = RatbagClient::connect().await;
     match client_result {
-        Ok(client) => {
+        Ok((client, bus_type)) => {
+            let bus_label = match bus_type {
+                BusType::Session => "session",
+                BusType::System => "system",
+            };
             let api_version = client.api_version().await.unwrap_or_else(|e| {
                 warn!("Failed to read ratbagd API version, defaulting to -1: {e:#}");
                 -1
             });
-            info!("Connected to ratbagd, API version: {api_version}");
+            info!("Connected to ratbagd on {bus_label} bus, API version: {api_version}");
 
             /* Cancel any previous signal watcher before spawning a new one */
             {
@@ -102,7 +106,7 @@ pub async fn connect_daemon(
 
             let mut guard = state.client.write().await;
             *guard = Some(client);
-            Ok(DaemonStatus::Connected { api_version })
+            Ok(DaemonStatus::Connected { api_version, bus_type: bus_label.to_owned() })
         }
         Err(e) => {
             error!("Failed to connect to ratbagd: {e:#}");

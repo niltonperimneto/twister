@@ -23,14 +23,59 @@ pub struct RatbagClient {
     conn: Connection,
 }
 
+/// Which D-Bus bus the client connected through.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum BusType {
+    /// libratbag-rs session daemon (`systemd --user`).
+    Session,
+    /// Legacy C libratbag system daemon (`sudo systemctl`).
+    System,
+}
+
 impl RatbagClient {
-    /* Connect to the system bus (ratbagd runs as a root-owned
-     * D-Bus-activated service on the system bus). */
-    pub async fn connect() -> Result<Self> {
+    /* Try the session bus first (libratbag-rs runs as an unprivileged
+     * session daemon), then fall back to the system bus (legacy C
+     * libratbag).  Returns the client and which bus was used so the
+     * frontend can show the correct help text. */
+    pub async fn connect() -> Result<(Self, BusType)> {
+        /* 1. Try session bus (libratbag-rs / ratbagd 2.x) */
+        if let Ok(conn) = Connection::session().await {
+            if Self::probe_ratbagd(&conn).await {
+                tracing::info!("Connected to ratbagd on the session bus");
+                return Ok((Self { conn }, BusType::Session));
+            }
+            tracing::info!("Session bus reachable but ratbagd not found there, trying system bus…");
+        }
+
+        /* 2. Fall back to system bus (legacy C libratbag) */
         let conn = Connection::system()
             .await
-            .context("Cannot connect to the system D-Bus")?;
-        Ok(Self { conn })
+            .context("Cannot connect to either the session or system D-Bus")?;
+        if Self::probe_ratbagd(&conn).await {
+            tracing::info!("Connected to ratbagd on the system bus (legacy)");
+            return Ok((Self { conn }, BusType::System));
+        }
+
+        Err(anyhow!(
+            "ratbagd is not running on the session bus or the system bus. \
+             Start the daemon with: systemctl --user start ratbagd (libratbag-rs) \
+             or sudo systemctl start ratbagd (legacy)"
+        ))
+    }
+
+    /* Quick probe: try to read the Manager APIVersion property to confirm
+     * ratbagd is actually present on the given connection. */
+    async fn probe_ratbagd(conn: &Connection) -> bool {
+        let result = conn
+            .call_method(
+                Some(BUS_NAME),
+                MANAGER_PATH,
+                Some("org.freedesktop.DBus.Properties"),
+                "Get",
+                &(MANAGER_IFACE, "APIVersion"),
+            )
+            .await;
+        result.is_ok()
     }
 
     /* Returns a reference to the underlying zbus Connection for signal subscriptions. */
