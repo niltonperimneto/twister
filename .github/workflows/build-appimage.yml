@@ -33,9 +33,7 @@ jobs:
             gcc \
             file \
             nodejs \
-            npm \
-            git \
-            bun
+            git
       - name: Checkout repository
         uses: actions/checkout@v6
         with:
@@ -49,6 +47,11 @@ jobs:
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
           echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
+      - name: Install Bun
+       run: |
+         curl -fsSL https://bun.com/install | bash
+         echo "$HOME/.bun/bin" >> $GITHUB_PATH
+
       - name: Cache Rust dependencies
         uses: actions/cache@v5
         with:
@@ -61,10 +64,10 @@ jobs:
 
       - name: Install frontend dependencies
         run: |
-          if [ -f package-lock.json ]; then
-            npm ci
+          if [ -f bun.lock ] || [ -f bun.lockb ]; then
+            bun install --frozen-lockfile
           else
-            npm install
+            bun install
           fi
 
       - name: Install Tauri CLI

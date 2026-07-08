@@ -3,7 +3,7 @@
 # to package.json, tauri.conf.json, and the AppStream metainfo XML.
 #
 # Usage:  ./scripts/sync-version.sh          (from the twister/ root)
-# The script is also called automatically via `npm run sync-version`.
+# The script is also called automatically via `bun run sync-version`.
 
 set -euo pipefail
 
