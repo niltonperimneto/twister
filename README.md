@@ -91,7 +91,7 @@ manager — with no compositor plugins, Shell extensions, or GTK theme configura
 |---|---|
 | Rust toolchain | 1.85+ (edition 2024) |
 | Node.js | 20+ |
-| npm | 10+ |
+| Bun | 1.x |
 | Tauri CLI | 2.x (`cargo install tauri-cli`) |
 
 ---
@@ -106,7 +106,7 @@ git clone https://github.com/niltonperimneto/twister.git
 cd twister
 
 # 2. Install JavaScript dependencies
-npm install
+bun install
 
 # 3. Fetch the latest Piper device SVGs (optional — included in the repo)
 ./scripts/fetch_piper_svgs.sh
@@ -233,10 +233,10 @@ welcome upstream.
 
 ```bash
 # Hot-reload development build (opens the Tauri window)
-npm run dev               # starts Vite dev server + Tauri shell
+bun run dev               # starts Vite dev server + Tauri shell
 
 # Type-check the frontend
-npm run check
+bun run check
 
 # Refresh Piper SVGs
 ./scripts/fetch_piper_svgs.sh
