@@ -475,56 +475,7 @@ code, kbd, samp, pre {
     padding: 0 0.875rem 0.875rem;
 }
 
-/* Picker wrapper — convex glass container for iro.js wheel */
-.led-picker-wrapper {
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.75rem;
-    border-radius: var(--radius-lg);
-    background: linear-gradient(
-        to bottom,
-        oklch(0.26 0.02 265 / 0.45),
-        oklch(0.19 0.015 265 / 0.3)
-    );
-    backdrop-filter: blur(16px) saturate(1.4);
-    -webkit-backdrop-filter: blur(16px) saturate(1.4);
-    border: 1px solid oklch(0.5 0.08 265 / 0.15);
-    border-top-color: oklch(0.55 0.08 265 / 0.22);
-    box-shadow:
-        var(--glass-inset),
-        0 4px 24px oklch(0 0 0 / 0.25),
-        0 1px 3px oklch(0 0 0 / 0.12);
-    transition:
-        border-color 200ms ease,
-        box-shadow 200ms ease;
-}
 
-.led-picker-wrapper:hover {
-    border-color: oklch(0.6 0.08 265 / 0.22);
-    border-top-color: oklch(0.65 0.08 265 / 0.28);
-    box-shadow:
-        var(--glass-inset),
-        0 6px 28px oklch(0 0 0 / 0.3),
-        0 1px 3px oklch(0 0 0 / 0.12);
-}
-
-/* Override iro.js internal SVG for dark theme */
-.led-picker-wrapper :global(.IroColorPicker) {
-    --iro-bg: transparent;
-}
-
-/* Make iro.js wheel border translucent for glass effect */
-.led-picker-wrapper :global(.IroWheelBorder) {
-    stroke: oklch(0.5 0 0 / 0.15) !important;
-}
-
-/* Glass handle for the iro wheel cursor */
-.led-picker-wrapper :global(.IroHandle circle) {
-    stroke: oklch(0.9 0 0 / 0.7) !important;
-    filter: drop-shadow(0 0 6px oklch(0 0 0 / 0.4));
-}
 
 /* HEX input field — frosted glass style */
 .led-hex-field {
