@@ -34,8 +34,7 @@ jobs:
             file \
             nodejs \
             npm \
-            git \
-            bun
+            git
       - name: Checkout repository
         uses: actions/checkout@v6
         with:
@@ -48,6 +47,11 @@ jobs:
         run: |
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
           echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+      - name: Install Bun
+       run: |
+         curl -fsSL https://bun.com/install | bash
+         echo "$HOME/.bun/bin" >> $GITHUB_PATH
 
       - name: Cache Rust dependencies
         uses: actions/cache@v5
