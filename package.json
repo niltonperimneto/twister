@@ -11,19 +11,18 @@
     "check": "svelte-check --tsconfig ./tsconfig.json"
   },
   "dependencies": {
-    "@jaames/iro": "^5.5.2",
-    "@tauri-apps/api": "^2.10.1",
-    "@tauri-apps/cli": "^2.10.1"
+    "@tauri-apps/api": "^2.11.1"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^6.2.4",
-    "@tailwindcss/vite": "^4.2.2",
-    "@types/node": "^25.5.0",
-    "daisyui": "^5.5.19",
-    "svelte": "^5.53.12",
-    "svelte-check": "^4.4.5",
-    "tailwindcss": "^4.2",
+    "@tailwindcss/vite": "^4.3.2",
+    "@types/node": "^25.9.4",
+    "daisyui": "^5.6.14",
+    "svelte": "^5.56.4",
+    "svelte-check": "^4.7.2",
+    "tailwindcss": "^4.3.2",
     "typescript": "^5.9.3",
-    "vite": "^7.3.1"
+    "vite": "^7.3.6",
+    "@tauri-apps/cli": "^2.11.4"
   }
 }
