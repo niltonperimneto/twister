@@ -34,8 +34,8 @@ jobs:
             file \
             nodejs \
             npm \
-            git
-
+            git \
+            bun
       - name: Checkout repository
         uses: actions/checkout@v6
         with:
