@@ -136,7 +136,7 @@
         overflow: hidden;
         cursor: pointer;
         box-shadow: inset 0 1px 0 0 oklch(1 0 0 / 0.05);
-        transition: all 200ms cubic-bezier(0.16, 1, 0.3, 1);
+        transition: all var(--dur-fast) var(--ease-out);
     }
     .kc-btn:hover {
         border-color: oklch(0.74 0.16 248 / 0.35);

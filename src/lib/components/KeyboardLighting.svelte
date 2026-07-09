@@ -81,17 +81,38 @@
         }
     });
 
-    function handleModeChange(e: Event) {
+    /* Sliders update local state instantly for a live UI, but the HID
+       write is debounced — same 150ms rhythm the mouse editors use — so a
+       drag doesn't flood the keyboard with reports. */
+    function makeDebounce<T extends unknown[]>(
+        fn: (...a: T) => void,
+        ms: number,
+    ) {
+        let t: ReturnType<typeof setTimeout> | null = null;
+        return (...a: T) => {
+            if (t) clearTimeout(t);
+            t = setTimeout(() => fn(...a), ms);
+        };
+    }
+
+    function writeLighting(mutate: (data: number[]) => void) {
         if (!kb.lighting) return;
-        const select = e.target as HTMLSelectElement;
-        const newMode = parseInt(select.value, 10);
         const data = [...kb.lighting];
-        data[0] = newMode;
+        mutate(data);
         kb.updateLighting(data);
     }
 
+    const debouncedWrite = makeDebounce(writeLighting, 150);
+
+    function handleModeChange(e: Event) {
+        const select = e.target as HTMLSelectElement;
+        const newMode = parseInt(select.value, 10);
+        writeLighting((data) => {
+            data[0] = newMode;
+        });
+    }
+
     function handleColorChange(e: Event) {
-        if (!kb.lighting) return;
         const input = e.target as HTMLInputElement;
         const hex = input.value;
         const r = parseInt(hex.slice(1, 3), 16);
@@ -100,34 +121,27 @@
         localR = r;
         localG = g;
         localB = b;
-        
-        const data = [...kb.lighting];
-        data[1] = r;
-        data[2] = g;
-        data[3] = b;
-        kb.updateLighting(data);
+        debouncedWrite((data) => {
+            data[1] = r;
+            data[2] = g;
+            data[3] = b;
+        });
     }
 
     function handleBrightnessChange(e: Event) {
-        if (!kb.lighting) return;
-        const input = e.target as HTMLInputElement;
-        const val = parseInt(input.value, 10);
+        const val = parseInt((e.target as HTMLInputElement).value, 10);
         localBrightness = val;
-        
-        const data = [...kb.lighting];
-        data[4] = val;
-        kb.updateLighting(data);
+        debouncedWrite((data) => {
+            data[4] = val;
+        });
     }
 
     function handleSpeedChange(e: Event) {
-        if (!kb.lighting) return;
-        const input = e.target as HTMLInputElement;
-        const val = parseInt(input.value, 10);
+        const val = parseInt((e.target as HTMLInputElement).value, 10);
         localSpeed = val;
-        
-        const data = [...kb.lighting];
-        data[6] = val;
-        kb.updateLighting(data);
+        debouncedWrite((data) => {
+            data[6] = val;
+        });
     }
 
     // Helper to format rgb to hex for color input
@@ -155,13 +169,13 @@
     {:else if kb.lighting}
         <!-- Effect Mode -->
         <div class="form-control">
-            <label class="label">
+            <label class="label" for="kb-lighting-effect">
                 <span class="label-text font-semibold flex items-center gap-2">
                     <Icon name="wand-2" class="w-4 h-4 opacity-70" />
                     Effect
                 </span>
             </label>
-            <select class="select select-bordered select-sm w-full" value={mode} onchange={handleModeChange}>
+            <select id="kb-lighting-effect" class="select select-bordered select-sm w-full" value={mode} onchange={handleModeChange}>
                 {#each effects as effect}
                     <option value={effect.id}>{effect.name}</option>
                 {/each}
@@ -170,7 +184,7 @@
 
         <!-- Color -->
         <div class="form-control">
-            <label class="label">
+            <label class="label" for="kb-lighting-color">
                 <span class="label-text font-semibold flex items-center gap-2">
                     <Icon name="palette" class="w-4 h-4 opacity-70" />
                     Color
@@ -178,10 +192,11 @@
             </label>
             <div class="flex gap-3 items-center">
                 <input
+                    id="kb-lighting-color"
                     type="color"
                     class="w-10 h-10 p-0 border-0 rounded-md cursor-pointer bg-transparent"
                     value={rgbToHex(localR, localG, localB)}
-                    onchange={handleColorChange}
+                    oninput={handleColorChange}
                     disabled={colorDisabled}
                 />
                 <span class="text-sm opacity-60">
@@ -198,7 +213,7 @@
 
         <!-- Brightness -->
         <div class="form-control">
-            <label class="label">
+            <label class="label" for="kb-lighting-brightness">
                 <span class="label-text font-semibold flex items-center gap-2">
                     <Icon name="sun" class="w-4 h-4 opacity-70" />
                     Brightness
@@ -206,15 +221,17 @@
                 <span class="text-xs opacity-50">{localBrightness} / 15</span>
             </label>
             <input
+                id="kb-lighting-brightness"
                 type="range"
                 min="0"
                 max="15"
                 class="slider"
                 value={localBrightness}
-                onchange={handleBrightnessChange}
+                aria-valuetext="{localBrightness} of 15"
+                oninput={handleBrightnessChange}
                 disabled={brightnessDisabled}
             />
-            <div class="w-full flex justify-between text-xs px-1 pt-1 opacity-40">
+            <div class="w-full flex justify-between text-xs px-1 pt-1 opacity-40" aria-hidden="true">
                 <span>Off</span>
                 <span>Max</span>
             </div>
@@ -222,7 +239,7 @@
 
         <!-- Speed -->
         <div class="form-control">
-            <label class="label">
+            <label class="label" for="kb-lighting-speed">
                 <span class="label-text font-semibold flex items-center gap-2">
                     <Icon name="gauge" class="w-4 h-4 opacity-70" />
                     Speed
@@ -230,15 +247,17 @@
                 <span class="text-xs opacity-50">{localSpeed} / 15</span>
             </label>
             <input
+                id="kb-lighting-speed"
                 type="range"
                 min="0"
                 max="15"
                 class="slider"
                 value={localSpeed}
-                onchange={handleSpeedChange}
+                aria-valuetext="{localSpeed} of 15"
+                oninput={handleSpeedChange}
                 disabled={speedDisabled}
             />
-            <div class="w-full flex justify-between text-xs px-1 pt-1 opacity-40">
+            <div class="w-full flex justify-between text-xs px-1 pt-1 opacity-40" aria-hidden="true">
                 <span>Slow</span>
                 <span>Fast</span>
             </div>

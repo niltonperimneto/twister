@@ -29,8 +29,6 @@ export type ViaDefinition =
   | ReturnType<typeof keyboardDefinitionV2ToVIADefinitionV2>
   | ReturnType<typeof keyboardDefinitionV3ToVIADefinitionV3>;
 
-export type ViaKey = ViaDefinition['layouts']['keys'][number];
-
 /* Raw definition JSON bundled from ./definitions/*.json. */
 const rawModules = import.meta.glob('./definitions/*.json', { eager: true }) as Record<
   string,

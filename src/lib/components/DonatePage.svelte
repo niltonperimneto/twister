@@ -1,12 +1,13 @@
 <!-- DonatePage — support the project, repos, and donation links -->
 <script lang="ts">
     import { fade } from "svelte/transition";
+    import { DUR, duration } from "$lib/motion";
     import { openUrl } from "$lib/ipc/commands";
 </script>
 
 <div
     class="flex-1 flex justify-center p-8 overflow-y-auto"
-    in:fade={{ duration: 250 }}
+    in:fade={{ duration: duration(DUR.base) }}
     out:fade={{ duration: 150 }}
 >
     <div

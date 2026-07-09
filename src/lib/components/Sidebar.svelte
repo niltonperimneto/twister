@@ -37,7 +37,7 @@
 
 <aside
     class="{collapsed ? 'w-14' : 'w-56'} shrink-0 flex flex-col gap-3 py-3 overflow-y-auto overflow-x-hidden"
-    style="border-right: 1px solid oklch(1 0 0 / 0.06); scrollbar-width: none; transition: width 200ms cubic-bezier(0.16, 1, 0.3, 1);"
+    style="border-right: 1px solid oklch(1 0 0 / 0.06); scrollbar-width: none; transition: width var(--dur-fast) var(--ease-out);"
 >
     <!-- Devices nav — the way back to the editor from Support/About,
          even when nothing is connected -->

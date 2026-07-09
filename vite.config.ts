@@ -22,7 +22,10 @@ export default defineConfig({
   build: {
     outDir: 'build',
     target: ['es2021', 'chrome100', 'safari15'],
-    minify: !process.env.TAURI_DEBUG ? 'esbuild' : false,
+    /* Rolldown-based Vite minifies with its built-in oxc minifier; the
+       previous explicit 'esbuild' setting forced esbuild as an extra
+       devDependency for the same result. */
+    minify: !process.env.TAURI_DEBUG,
     sourcemap: !!process.env.TAURI_DEBUG,
   },
 });
