@@ -12,6 +12,46 @@ export interface DeviceSummary {
   model: string;
 }
 
+/* ------------------------------------------------------------------ */
+/* Keyboards (clackd)                                                  */
+/* ------------------------------------------------------------------ */
+
+export type ClackdStatus =
+  | { status: 'connected' }
+  | { status: 'disconnected'; reason: string };
+
+export interface KeyboardSummary {
+  id: string;
+  name: string;
+}
+
+export interface KeyboardIdentity {
+  vendor_id: number;
+  product_id: number;
+  name: string;
+}
+
+export interface KeyboardDeviceDto {
+  id: string;
+  /* Driver-reported model name. "VIA keyboard" marks clackd's native VIA
+   * custom-channel driver; any other value (e.g. "GMK67/EK68") marks a legacy
+   * polyfill driver using the single-blob lighting protocol. Used by the
+   * keyboard store to pick the correct lighting read/write path. */
+  model: string;
+  rows: number;
+  cols: number;
+  layers: number;
+  identity: KeyboardIdentity | null;
+  /* keymap[layer] is a row-major number[] of length rows*cols, or [] if that
+   * layer has not been fetched yet (only layer 0 is loaded eagerly). */
+  keymap: number[][];
+}
+
+/* Discriminated union for the unified sidebar device list (mice + keyboards). */
+export type UnifiedDevice =
+  | ({ kind: 'mouse' } & DeviceSummary)
+  | ({ kind: 'keyboard' } & KeyboardSummary);
+
 export interface DeviceDto {
   path: string;
   name: string;

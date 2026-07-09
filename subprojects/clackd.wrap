@@ -1,0 +1,12 @@
+# clackd — keyboard daemon, consumed for its install targets (binaries, udev
+# rules, D-Bus service, systemd user unit). clackd has no release tags yet, so
+# we track the default branch; pin `revision` to a tag once one is cut.
+#
+# For local development against a sibling checkout, place or symlink the repo at
+# subprojects/clackd (e.g. `ln -s ../../clackd subprojects/clackd`) and meson
+# will use it directly instead of cloning.
+[wrap-git]
+url = https://github.com/niltonperimneto/clackd.git
+revision = main
+depth = 1
+directory = clackd

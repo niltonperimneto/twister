@@ -108,16 +108,56 @@ cd twister
 # 2. Install JavaScript dependencies
 bun install
 
-# 3. Fetch the latest Piper device SVGs (optional — included in the repo)
-./scripts/fetch_piper_svgs.sh
-
-# 4. Build and run
+# 3. Build and run
 cargo tauri dev          # development hot-reload
 cargo tauri build        # production bundle
 ```
 
 > **Note:** The `ratbagd` or `ratbagd-rs` daemon must be running before starting Twister.
 > See the [ratbagd-rs repository](https://github.com/niltonperimneto/libratbag-rs) for setup instructions.
+
+### Build & install with Meson (app + daemons in one shot)
+
+The Meson superproject builds and installs Twister **together with both daemons it
+talks to** — [clackd](https://github.com/niltonperimneto/clackd) (keyboards) and
+[libratbag-rs / ratbagd](https://github.com/niltonperimneto/libratbag-rs) (mice) —
+pulled in as Meson subprojects. One install lays down the GUI, both daemon binaries,
+their D-Bus service files, systemd user units, udev rules, and ratbagd's device
+database.
+
+```bash
+# Easiest: the convenience installer (configures, builds, installs).
+./install.sh                       # prefix=/usr, both daemons bundled
+
+# Or drive Meson directly. NOTE: the build dir is `builddir`, not `build`
+# (`build/` is the vite frontend output and would be clobbered).
+meson setup builddir --prefix=/usr --buildtype=release
+meson compile -C builddir
+sudo meson install -C builddir
+```
+
+Pick and choose which daemons to bundle with the feature options (default: both):
+
+```bash
+meson setup builddir -Dclackd=disabled    # app + ratbagd only (no keyboard daemon)
+meson setup builddir -Dratbagd=disabled   # app + clackd only  (no mouse daemon)
+```
+
+After installing, finish in your **normal user session** (not under `sudo`):
+
+```bash
+systemctl --user daemon-reload
+systemctl --user enable --now clackd.service ratbagd.service
+```
+
+`clackd` needs one udev line per VIA keyboard you want managed (the Epomaker EK68 /
+Zuoya GMK67 line ships preinstalled). Edit `/etc/udev/rules.d/60-clackd-via.rules`,
+then `sudo udevadm control --reload-rules && sudo udevadm trigger`.
+
+> For local development you can build the daemons from sibling checkouts instead of
+> cloning: symlink them into `subprojects/` —
+> `ln -s ../../clackd subprojects/clackd` and
+> `ln -s ../../libratbag-rs subprojects/libratbag`.
 
 ### Starting the daemon (ratbagd-rs)
 
@@ -177,7 +217,6 @@ twister/
 │   │   │   └── toast.svelte.ts   # In-app notification queue
 │   │   ├── ipc/
 │   │   │   └── commands.ts       # Typed wrapper for Tauri IPC commands
-│   │   ├── svg-lookup.ts         # Piper SVG filename resolver (async, cached)
 │   │   └── types.ts              # Shared TypeScript types / DTOs
 ├── src-tauri/                    # Tauri 2 Rust backend
 │   ├── src/
@@ -188,10 +227,7 @@ twister/
 │   │   └── main.rs               # Entry point
 │   ├── Cargo.toml
 │   └── tauri.conf.json           # Window config, CSP, bundle settings
-├── public/
-│   └── svgs/                     # Piper device SVGs + svg-lookup.ini
-└── scripts/
-    └── fetch_piper_svgs.sh       # Helper to refresh SVGs from Piper upstream
+└── scripts/                      # Build & packaging helpers
 ```
 
 ### D-Bus flow
@@ -220,12 +256,11 @@ signals on the `org.freedesktop.ratbag1` bus and emits a `ratbag:resync` Tauri e
 Twister supports any device that is supported by `libratbag` / `ratbagd-rs`. This includes
 mice from Logitech, ASUS ROG, SteelSeries, Roccat, Glorious, Sinowealth, and others.
 
-Device visualisations are provided by the [Piper SVG library](https://github.com/libratbag/piper/tree/master/data/svgs).
-Run `./scripts/fetch_piper_svgs.sh` to update to the latest set from upstream.
-
-If your device is supported by ratbagd but has no SVG in the Piper library, Twister will
-fall back to a generic mouse SVG. Contributions of new SVGs to the Piper project are always
-welcome upstream.
+Device visualisations are rendered parametrically from the device's reported
+capabilities (buttons, LEDs, resolutions), so every supported mouse gets an
+interactive, annotated visual — no per-model artwork required. Buttons follow
+the libratbag convention (0 left, 1 right, 2 wheel, 3 back, 4 forward, 5 DPI);
+zones the silhouette can't seat are shown as selectable chips below it.
 
 ---
 
@@ -237,9 +272,6 @@ bun run dev               # starts Vite dev server + Tauri shell
 
 # Type-check the frontend
 bun run check
-
-# Refresh Piper SVGs
-./scripts/fetch_piper_svgs.sh
 
 # Production build
 cargo tauri build

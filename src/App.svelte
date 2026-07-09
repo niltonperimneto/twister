@@ -4,13 +4,15 @@
     import { fade, fly } from "svelte/transition";
     import { getCurrentWindow } from "@tauri-apps/api/window";
     import { deviceStore } from "$lib/stores/device.svelte";
+    import { keyboardStore } from "$lib/stores/keyboard.svelte";
     import { themeStore } from "$lib/stores/theme.svelte";
+    import { updaterStore } from "$lib/stores/updater.svelte";
     import { getToasts, addToast } from "$lib/stores/toast.svelte";
     import type { View } from "$lib/types";
     import Titlebar from "$lib/components/Titlebar.svelte";
     import Sidebar from "$lib/components/Sidebar.svelte";
     import Icon from "$lib/components/Icon.svelte";
-    import DeviceVisualizer from "$lib/components/DeviceVisualizer.svelte";
+    import MouseVisualizer from "$lib/components/MouseVisualizer.svelte";
     import DpiEditor from "$lib/components/DpiEditor.svelte";
     import ButtonMapper from "$lib/components/ButtonMapper.svelte";
     import LedEditor from "$lib/components/LedEditor.svelte";
@@ -18,17 +20,50 @@
     import WelcomePage from "$lib/components/WelcomePage.svelte";
     import AboutPage from "$lib/components/AboutPage.svelte";
     import DonatePage from "$lib/components/DonatePage.svelte";
+    import KeyboardEditor from "$lib/components/KeyboardEditor.svelte";
+    import KeyboardStatusNotice from "$lib/components/KeyboardStatusNotice.svelte";
 
     const store = deviceStore;
+    const kb = keyboardStore;
     const appWindow = getCurrentWindow();
+
+    /* Which device class the editor area shows. Explicit sidebar selection
+       wins (manualKind); otherwise default to whichever class actually has an
+       active device, preferring mice for back-compat. */
+    let manualKind: "mouse" | "keyboard" | null = $state(null);
+    let activeDeviceKind: "mouse" | "keyboard" = $derived(
+        manualKind ??
+            (store.activeDevice
+                ? "mouse"
+                : kb.activeKeyboard
+                  ? "keyboard"
+                  : "mouse"),
+    );
+
+    /* The full-screen StatusOverlay is reserved for ratbagd, but must not block
+       a keyboard-only setup (no ratbagd installed). Show it only when neither
+       daemon offers a usable UI. */
+    let showStatusOverlay = $derived(
+        store.daemonStatus.status !== "connected" && !kb.isConnected,
+    );
 
     type Tab = "dpi" | "buttons" | "leds";
     let activeTab: Tab = $state("dpi");
     let selectedSvgId: string | null = $state(null);
-    let sidebarOpen: boolean = $state(false);
+    let sidebarCollapsed: boolean = $state(
+        localStorage.getItem("twister_sidebar_collapsed") === "true",
+    );
     let currentView: View = $state("welcome");
     let isMaximized: boolean = $state(false);
     let committing: boolean = $state(false);
+
+    function toggleSidebar() {
+        sidebarCollapsed = !sidebarCollapsed;
+        localStorage.setItem(
+            "twister_sidebar_collapsed",
+            String(sidebarCollapsed),
+        );
+    }
 
     /* Global ambient glow color derived from the first LED, with a
        fallback so every device gets a consistent glow even without LEDs
@@ -64,18 +99,7 @@
         }
     });
 
-    /* When the first device is loaded, auto-switch from welcome → devices (once) */
-    let hasAutoSwitched = false;
-    $effect(() => {
-        if (
-            store.activeDevice &&
-            currentView === "welcome" &&
-            !hasAutoSwitched
-        ) {
-            hasAutoSwitched = true;
-            currentView = "devices";
-        }
-    });
+
 
     function handleSvgSelect(id: string) {
         selectedSvgId = id;
@@ -87,16 +111,29 @@
         currentView = view;
     }
 
-    async function handleCommit() {
+    /* Unified Apply — routes to whichever device class is being edited */
+    async function handleApply() {
         if (committing) return;
+        const isKeyboard = activeDeviceKind === "keyboard";
+        if (isKeyboard ? !kb.activeKeyboard : !store.activeDevice) return;
         committing = true;
         try {
-            await store.commit();
-            addToast("Changes written to device", "info");
+            if (isKeyboard) {
+                await kb.commit();
+                addToast("Configuration written to keyboard NVRAM", "info");
+            } else {
+                await store.commit();
+                addToast("Changes written to device", "info");
+            }
         } catch (e) {
             const msg = String(e);
             if (msg.includes("timed out")) {
-                addToast("Commit timed out — changes are applied live but may not persist after unplug", "info");
+                addToast(
+                    isKeyboard
+                        ? "Commit timed out — changes are applied live"
+                        : "Commit timed out — changes are applied live but may not persist after unplug",
+                    "info",
+                );
             } else {
                 addToast(`Commit failed: ${e}`, "error");
             }
@@ -108,6 +145,17 @@
     onMount(() => {
         themeStore.init();
         store.init();
+        kb.init();
+        updaterStore.init();
+
+        /* Splash plays on first run only, unless the user explicitly
+           re-enabled it in About */
+        const animPref = localStorage.getItem("twister_play_startup_animation");
+        const firstRun = localStorage.getItem("twister_first_run_done") === null;
+        if (animPref !== "true" && !firstRun) {
+            currentView = "devices";
+        }
+        localStorage.setItem("twister_first_run_done", "1");
 
         /* Track maximize state for corner radius */
         appWindow.isMaximized().then((v) => {
@@ -127,13 +175,13 @@
 
         if (mod && e.key === "s") {
             e.preventDefault();
-            if (store.activeDevice) handleCommit();
+            handleApply();
         } else if (mod && e.key === "q") {
             e.preventDefault();
             getCurrentWindow().close();
         } else if (mod && e.key === "b") {
             e.preventDefault();
-            sidebarOpen = !sidebarOpen;
+            toggleSidebar();
         } else if (e.ctrlKey && e.key === "Tab") {
             e.preventDefault();
             const tabIds = tabs.map((t) => t.id);
@@ -153,23 +201,29 @@
     class="app-root h-screen w-screen flex flex-col text-base-content relative"
     style="border-radius: {isMaximized ? '0' : 'var(--radius-lg)'};"
 >
-    <Titlebar
-        onToggleSidebar={() => (sidebarOpen = !sidebarOpen)}
-        {isMaximized}
-    />
+    <Titlebar onToggleSidebar={toggleSidebar} {isMaximized} />
 
     <div class="flex flex-1 min-h-0 p-2 gap-2">
-        {#if sidebarOpen}
-            <Sidebar
-                devices={store.devices}
-                activeDevice={store.activeDevice}
-                activeProfileIndex={store.activeProfileIndex}
-                {currentView}
-                onSelectDevice={(path) => store.selectDevice(path)}
-                onSelectProfile={(idx) => store.selectProfile(idx)}
-                onNavigate={handleNavigate}
-            />
-        {/if}
+        <Sidebar
+            devices={store.devices}
+            activeDevice={store.activeDevice}
+            keyboards={kb.keyboards}
+            activeKeyboardId={kb.activeKeyboardId}
+            activeKind={activeDeviceKind}
+            {currentView}
+            collapsed={sidebarCollapsed}
+            onSelectDevice={(path) => {
+                manualKind = "mouse";
+                currentView = "devices";
+                store.selectDevice(path);
+            }}
+            onSelectKeyboard={(id) => {
+                manualKind = "keyboard";
+                currentView = "devices";
+                kb.selectKeyboard(id);
+            }}
+            onNavigate={handleNavigate}
+        />
 
         <main class="flex-1 min-w-0 min-h-0 overflow-hidden relative">
             {#key currentView}
@@ -185,8 +239,86 @@
                     {:else if currentView === "donate"}
                         <DonatePage />
                     {:else if currentView === "devices"}
+                        {@const headerName =
+                            activeDeviceKind === "keyboard"
+                                ? (kb.keyboards.find(
+                                      (k) => k.id === kb.activeKeyboardId,
+                                  )?.name ??
+                                  (kb.activeKeyboard ? "Keyboard" : null))
+                                : (store.activeDevice?.name ?? null)}
+                        {#if headerName}
+                            <!-- Context header — device identity, profiles, Apply -->
+                            <header
+                                class="flex items-center gap-3 px-4 pt-3 pb-2.5 shrink-0"
+                                style="border-bottom: 1px solid oklch(1 0 0 / 0.05);"
+                            >
+                                <Icon
+                                    name={activeDeviceKind}
+                                    class="w-4 h-4 shrink-0 opacity-60"
+                                />
+                                <span class="text-sm font-semibold truncate"
+                                    >{headerName}</span
+                                >
+
+                                {#if activeDeviceKind === "mouse" && store.activeDevice && store.activeDevice.profiles.length > 1}
+                                    <div class="pill-group ml-2">
+                                        {#each store.activeDevice.profiles as profile (profile.index)}
+                                            <button
+                                                onclick={() =>
+                                                    store.selectProfile(
+                                                        profile.index,
+                                                    )}
+                                                class="pill-btn {store.activeProfileIndex ===
+                                                profile.index
+                                                    ? 'pill-btn-active'
+                                                    : ''} inline-flex items-center gap-1.5
+                                                {profile.disabled
+                                                    ? 'opacity-25 pointer-events-none'
+                                                    : ''}"
+                                            >
+                                                {profile.name ||
+                                                    `Profile ${profile.index}`}
+                                                {#if profile.is_dirty}
+                                                    <span
+                                                        class="w-1.5 h-1.5 rounded-full bg-warning"
+                                                        title="Unsaved changes"
+                                                    ></span>
+                                                {/if}
+                                            </button>
+                                        {/each}
+                                    </div>
+                                {/if}
+
+                                <button
+                                    onclick={handleApply}
+                                    class="btn btn-primary btn-sm gap-1 ml-auto"
+                                    disabled={committing}
+                                >
+                                    {#if committing}
+                                        <span
+                                            class="loading loading-spinner loading-xs"
+                                        ></span>
+                                        Applying…
+                                    {:else}
+                                        <Icon
+                                            name="check"
+                                            class="w-3.5 h-3.5"
+                                        />
+                                        Apply
+                                    {/if}
+                                </button>
+                            </header>
+                        {/if}
                         <div class="flex-1 flex overflow-hidden">
-                            {#if store.activeProfile}
+                            {#if activeDeviceKind === "keyboard"}
+                                {#if kb.activeKeyboard}
+                                    <div class="flex-1 flex overflow-hidden">
+                                        <KeyboardEditor />
+                                    </div>
+                                {:else}
+                                    <KeyboardStatusNotice />
+                                {/if}
+                            {:else if store.activeProfile}
                                 {@const isEmpty =
                                     store.activeProfile.buttons.length === 0 &&
                                     store.activeProfile.leds.length === 0 &&
@@ -216,17 +348,17 @@
                                         </div>
                                     </div>
                                 {:else}
-                                    <!-- Left: Device SVG visualizer -->
+                                    <!-- Left: parametric visualizer takes the free space -->
                                     {#if store.activeDevice}
                                         <div
-                                            class="w-2/5 shrink-0 flex flex-col items-center justify-center p-6 overflow-y-auto"
+                                            class="flex-1 min-w-0 flex flex-col items-center justify-center p-6 overflow-y-auto"
                                         >
-                                            <DeviceVisualizer
-                                                model={store.activeDevice.model}
+                                            <MouseVisualizer
+                                                profile={store.activeProfile}
                                                 selectedId={selectedSvgId}
                                                 onSelect={handleSvgSelect}
                                                 ambientColor={ambientGlow}
-                                                class="max-w-sm w-full"
+                                                class="max-w-md w-full"
                                             />
                                             <p
                                                 class="text-[10px] text-base-content/30 mt-3 select-none"
@@ -236,13 +368,13 @@
                                         </div>
                                     {/if}
 
-                                    <!-- Right: Tabs + editor panels -->
+                                    <!-- Right: Tabs + editor panels, capped on wide windows -->
                                     <div
-                                        class="flex-1 flex flex-col min-w-0 overflow-hidden"
+                                        class="w-[46%] min-w-[360px] max-w-[720px] shrink-0 flex flex-col overflow-hidden"
                                     >
                                         <!-- Tab bar -->
                                         <div
-                                            class="flex items-center justify-between px-4 pt-3 pb-2 shrink-0"
+                                            class="flex items-center px-4 pt-3 pb-2 shrink-0"
                                         >
                                             <div class="pill-group">
                                                 {#each tabs as tab (tab.id)}
@@ -263,23 +395,6 @@
                                                     </button>
                                                 {/each}
                                             </div>
-
-                                            <button
-                                                onclick={handleCommit}
-                                                class="btn btn-primary btn-sm gap-1"
-                                                disabled={committing}
-                                            >
-                                                {#if committing}
-                                                    <span class="loading loading-spinner loading-xs"></span>
-                                                    Applying…
-                                                {:else}
-                                                    <Icon
-                                                        name="check"
-                                                        class="w-3.5 h-3.5"
-                                                    />
-                                                    Apply
-                                                {/if}
-                                            </button>
                                         </div>
 
                                         <!-- Tab content with fade transition -->
@@ -351,7 +466,7 @@
                                     ></span>
                                 </div>
                             {:else}
-                                <!-- Closed-sidebar trap: no device selected, nudge to open sidebar -->
+                                <!-- No device selected — sidebar is always visible now -->
                                 <div
                                     class="flex-1 flex items-center justify-center"
                                 >
@@ -359,27 +474,16 @@
                                         class="text-center text-base-content/50 max-w-xs"
                                     >
                                         <Icon
-                                            name="panel-left"
+                                            name="mouse"
                                             class="w-10 h-10 mx-auto mb-3 opacity-25"
                                         />
                                         <p class="text-sm font-medium">
-                                            Open the sidebar
+                                            Select a device
                                         </p>
                                         <p class="text-xs mt-1 opacity-60">
-                                            Use the ☰ menu or press <kbd
-                                                class="kbd kbd-xs">Ctrl+B</kbd
-                                            > to browse devices
+                                            Pick a device from the sidebar to
+                                            start configuring it
                                         </p>
-                                        <button
-                                            onclick={() => (sidebarOpen = true)}
-                                            class="btn btn-primary btn-sm mt-4 gap-1.5"
-                                        >
-                                            <Icon
-                                                name="panel-left"
-                                                class="w-3.5 h-3.5"
-                                            />
-                                            Open sidebar
-                                        </button>
                                     </div>
                                 </div>
                             {/if}
@@ -390,12 +494,14 @@
         </main>
     </div>
 
-    <StatusOverlay
-        status={store.daemonStatus}
-        error={store.error}
-        loading={store.loading}
-        onRetry={() => store.init()}
-    />
+    {#if showStatusOverlay}
+        <StatusOverlay
+            status={store.daemonStatus}
+            error={store.error}
+            loading={store.loading}
+            onRetry={() => store.init()}
+        />
+    {/if}
 
     <!-- Ambient glow overlay — rendered last so it bleeds over all UI elements -->
     {#if ambientGlow}

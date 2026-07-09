@@ -26,7 +26,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' asset: https://asset.localhost; connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com"
+      "csp": "default-src 'self'; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' asset: https://asset.localhost; connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com https://github.com https://objects.githubusercontent.com"
     }
   },
   "bundle": {
@@ -37,5 +37,12 @@
       "icons/icon.png"
     ]
   },
-  "plugins": {}
+  "plugins": {
+    "updater": {
+      "endpoints": [
+        "https://github.com/niltonperimneto/twister/releases/latest/download/latest.json"
+      ],
+      "pubkey": "dW51c2VkX3B1YmtleV9mb3JfZGV2X2J1aWxkX3BsZWFzZV9pZ25vcmU="
+    }
+  }
 }

@@ -29,4 +29,10 @@ if [ -f "$METAINFO" ]; then
   sed -i "0,/<release version=\"[^\"]*\"/{s/<release version=\"[^\"]*\"/<release version=\"$VERSION\"/}" "$METAINFO"
 fi
 
+# ── 5. meson.build (superproject project() version, first match only) ──
+MESON="$ROOT/meson.build"
+if [ -f "$MESON" ]; then
+  sed -i "0,/version: '[^']*'/{s/version: '[^']*'/version: '$VERSION'/}" "$MESON"
+fi
+
 echo "synced version $VERSION across all manifests"

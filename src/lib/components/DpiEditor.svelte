@@ -15,15 +15,22 @@
 
   let { profile, onUpdated }: Props = $props();
 
+  /* Editable mirror of the profile state, keyed by resolution array position.
+   * While a write is in flight we suppress the prop->local resync so an
+   * in-progress drag isn't clobbered; otherwise local always tracks the
+   * daemon's actual values (so a refresh, or a daemon-snapped value, shows
+   * correctly). */
   let localReportRate: number = $state(0);
   let localDpis: number[] = $state([]);
-  let lastProfilePath = '';
+  let pending: boolean = $state(false);
 
   $effect(() => {
-    if (profile.path === lastProfilePath) return;
-    lastProfilePath = profile.path;
-    localReportRate = profile.report_rate;
-    localDpis = profile.resolutions.map((r) => r.dpi_x);
+    /* Track these as deps so the resync re-runs when the daemon data changes. */
+    const rate = profile.report_rate;
+    const dpis = profile.resolutions.map((r) => r.dpi_x);
+    if (pending) return;
+    localReportRate = rate;
+    localDpis = dpis;
   });
 
   function snap(value: number, allowed: number[]): number {
@@ -33,34 +40,53 @@
     );
   }
 
+  /* A valid range step for the allowed DPI list: the smallest gap between
+   * sorted stops, never zero. Falls back to 50 for a single-value list. */
+  function dpiStep(list: number[]): number {
+    if (list.length < 2) return 50;
+    const sorted = [...list].sort((a, b) => a - b);
+    let min = Infinity;
+    for (let j = 1; j < sorted.length; j++) {
+      const gap = sorted[j] - sorted[j - 1];
+      if (gap > 0 && gap < min) min = gap;
+    }
+    return Number.isFinite(min) ? min : 50;
+  }
+
   let writeTimer: ReturnType<typeof setTimeout> | null = null;
 
-  function debouncedDpiWrite(res: ResolutionDto, value: number) {
+  function debouncedDpiWrite(res: ResolutionDto, i: number, value: number) {
     const snapped = snap(value, res.dpi_list);
-    localDpis[res.index] = snapped;
+    pending = true;
+    localDpis[i] = snapped;
     if (writeTimer) clearTimeout(writeTimer);
     writeTimer = setTimeout(async () => {
       try {
         await setResolutionDpi(res.path, snapped, null);
-        onUpdated();
+        await onUpdated();
       } catch (e) {
         console.error('DPI write failed:', e);
-        addToast('DPI write failed');
-        localDpis[res.index] = profile.resolutions[res.index]?.dpi_x ?? snapped;
+        addToast(`DPI write failed: ${e}`);
+        localDpis[i] = profile.resolutions[i]?.dpi_x ?? snapped;
+      } finally {
+        pending = false;
       }
     }, 150);
   }
 
   async function handleReportRateChange(rate: number) {
     const snapped = snap(rate, profile.report_rates);
+    pending = true;
     localReportRate = snapped;
     try {
       await setProfileReportRate(profile.path, snapped);
-      onUpdated();
+      await onUpdated();
     } catch (e) {
       console.error('Report rate write failed:', e);
-      addToast('Report rate write failed');
+      addToast(`Report rate write failed: ${e}`);
       localReportRate = profile.report_rate;
+    } finally {
+      pending = false;
     }
   }
 
@@ -77,20 +103,20 @@
   <div class="editor-card">
     <div class="editor-card-header">
       <h3 class="text-sm font-medium flex items-center gap-2">
-        <svg class="w-3.5 h-3.5 opacity-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <svg class="w-3.5 h-3.5 opacity-60 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         Polling Rate
       </h3>
-      <span class="text-xs font-mono text-primary">{localReportRate} Hz</span>
+      <span class="text-xs font-mono text-primary font-bold">{localReportRate} Hz</span>
     </div>
 
     {#if profile.report_rates.length > 0}
-      <div class="pill-group">
+      <div class="pill-group self-start">
         {#each profile.report_rates as rate (rate)}
           <button
             onclick={() => handleReportRateChange(rate)}
             class="pill-btn {localReportRate === rate ? 'pill-btn-active' : ''}"
           >
-            {rate}
+            {rate} Hz
           </button>
         {/each}
       </div>
@@ -102,48 +128,58 @@
   <!-- DPI per resolution preset -->
   {#each profile.resolutions as res, i (res.index)}
     {@const dpi = localDpis[i] ?? res.dpi_x}
-    <div class="editor-card {res.is_active ? 'ring-1 ring-primary/30' : ''}">
+    {@const isClickable = !res.is_active && !res.is_disabled}
+    <div 
+      onclick={(e) => {
+        const target = e.target as HTMLElement;
+        if (target.closest('input[type="range"]')) return;
+        if (isClickable) handleSetActive(res);
+      }}
+      class="editor-card transition-all duration-200 {res.is_active ? 'ring-2 ring-primary/40 border-primary/20 bg-primary/5!' : ''} {isClickable ? 'cursor-pointer hover:border-base-content/15' : ''}"
+    >
       <div class="editor-card-header">
-        <div class="flex items-center gap-2">
-          <h3 class="text-sm font-medium">Stage {res.index}</h3>
-          {#if res.is_active}
-            <span class="w-1.5 h-1.5 rounded-full bg-primary" title="Active"></span>
-          {/if}
+        <div class="flex items-center gap-3">
+          <input 
+            type="radio" 
+            name="active_dpi_stage" 
+            checked={res.is_active} 
+            disabled={res.is_disabled}
+            class="radio radio-primary radio-xs cursor-pointer disabled:opacity-30"
+            onclick={(e) => {
+              e.stopPropagation();
+              if (!res.is_active) handleSetActive(res);
+            }}
+          />
+          <h3 class="text-sm font-semibold tracking-wide">Stage {res.index}</h3>
           {#if res.is_disabled}
-            <span class="text-[10px] text-base-content/30">disabled</span>
+            <span class="badge badge-ghost badge-sm opacity-50 scale-90">disabled</span>
           {/if}
         </div>
-        <span class="text-xs font-mono text-secondary tabular-nums">
+        <span class="text-xs font-mono text-secondary font-bold tabular-nums">
           {dpi}
           {#if res.dpi_y != null}&times;{res.dpi_y}{/if}
-          <span class="text-base-content/30 ml-0.5">DPI</span>
+          <span class="text-base-content/40 font-normal ml-0.5">DPI</span>
         </span>
       </div>
 
       {#if res.dpi_list.length > 0}
-        <div class="flex flex-col gap-1">
+        <div class="flex flex-col gap-1.5" onclick={(e) => e.stopPropagation()}>
           <input
             type="range"
-            class="range range-primary range-xs"
+            class="slider"
             min={Math.min(...res.dpi_list)}
             max={Math.max(...res.dpi_list)}
-            step={res.dpi_list.length > 1 ? res.dpi_list[1] - res.dpi_list[0] : 50}
+            step={dpiStep(res.dpi_list)}
             value={dpi}
-            oninput={(e) => debouncedDpiWrite(res, Number(e.currentTarget.value))}
+            oninput={(e) => debouncedDpiWrite(res, i, Number(e.currentTarget.value))}
           />
-          <div class="flex justify-between">
-            <span class="text-[10px] text-base-content/25">{Math.min(...res.dpi_list)}</span>
-            <span class="text-[10px] text-base-content/25">{Math.max(...res.dpi_list)}</span>
+          <div class="flex justify-between px-0.5">
+            <span class="text-[9px] font-mono text-base-content/30">{Math.min(...res.dpi_list)}</span>
+            <span class="text-[9px] font-mono text-base-content/30">{Math.max(...res.dpi_list)}</span>
           </div>
         </div>
       {:else}
         <p class="text-xs text-base-content/35 italic">No DPI list available</p>
-      {/if}
-
-      {#if !res.is_active && !res.is_disabled}
-        <button onclick={() => handleSetActive(res)} class="pill-btn self-start text-[11px]">
-          Set Active
-        </button>
       {/if}
     </div>
   {/each}

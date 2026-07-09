@@ -7,6 +7,9 @@ import type {
   DeviceSummary,
   DeviceDto,
   ActionValueDto,
+  ClackdStatus,
+  KeyboardSummary,
+  KeyboardDeviceDto,
 } from '$lib/types';
 
 export async function connectDaemon(): Promise<DaemonStatus> {
@@ -77,6 +80,53 @@ export async function setLedEffectDuration(
 
 export async function commitDevice(path: string): Promise<number> {
   return invoke<number>('commit_device', { path });
+}
+
+/* ------------------------------------------------------------------ */
+/* Keyboards (clackd)                                                  */
+/* ------------------------------------------------------------------ */
+
+export async function connectClackd(): Promise<ClackdStatus> {
+  return invoke<ClackdStatus>('connect_clackd');
+}
+
+export async function listKeyboards(): Promise<KeyboardSummary[]> {
+  return invoke<KeyboardSummary[]>('list_keyboards');
+}
+
+export async function getKeyboard(id: string): Promise<KeyboardDeviceDto> {
+  return invoke<KeyboardDeviceDto>('get_keyboard', { id });
+}
+
+export async function getKeymap(id: string, layer: number): Promise<number[]> {
+  return invoke<number[]>('get_keymap', { id, layer });
+}
+
+export async function setKeycode(
+  id: string,
+  layer: number,
+  row: number,
+  col: number,
+  keycode: number,
+): Promise<void> {
+  return invoke('set_keycode', { id, layer, row, col, keycode });
+}
+
+export async function commitKeyboard(id: string): Promise<void> {
+  return invoke('commit_keyboard', { id });
+}
+
+export async function getKeyboardLighting(id: string, channel: number, value_id: number): Promise<number[]> {
+  return invoke<number[]>('get_keyboard_lighting', { id, channel, valueId: value_id });
+}
+
+export async function setKeyboardLighting(
+  id: string,
+  channel: number,
+  value_id: number,
+  data: number[],
+): Promise<void> {
+  return invoke('set_keyboard_lighting', { id, channel, valueId: value_id, data });
 }
 
 export async function openUrl(url: string): Promise<void> {

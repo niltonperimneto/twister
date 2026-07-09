@@ -1,6 +1,6 @@
 use anyhow::{Context, Result, anyhow};
 use futures::future::try_join_all;
-use tracing::warn;
+use tracing::{info, warn};
 use zbus::Connection;
 use zbus::zvariant::{OwnedValue, Value};
 
@@ -16,6 +16,29 @@ const BUTTON_IFACE: &str = "org.freedesktop.ratbag1.Button";
 const LED_IFACE: &str = "org.freedesktop.ratbag1.Led";
 
 /* ------------------------------------------------------------------ */
+/* Bus kind                                                            */
+/* ------------------------------------------------------------------ */
+
+/* Which D-Bus instance hosts the ratbag1 service.
+ *  - Session: the modern udev-based ratbagd-rs, an unprivileged user service.
+ *  - System:  the legacy C `ratbagd` / pre-udev ratbagd-rs (root, D-Bus
+ *    activated). */
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum BusKind {
+    Session,
+    System,
+}
+
+impl BusKind {
+    fn as_str(self) -> &'static str {
+        match self {
+            BusKind::Session => "session",
+            BusKind::System => "system",
+        }
+    }
+}
+
+/* ------------------------------------------------------------------ */
 /* Client                                                              */
 /* ------------------------------------------------------------------ */
 
@@ -23,59 +46,53 @@ pub struct RatbagClient {
     conn: Connection,
 }
 
-/// Which D-Bus bus the client connected through.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum BusType {
-    /// libratbag-rs session daemon (`systemd --user`).
-    Session,
-    /// Legacy C libratbag system daemon (`sudo systemctl`).
-    System,
-}
-
 impl RatbagClient {
-    /* Try the session bus first (libratbag-rs runs as an unprivileged
-     * session daemon), then fall back to the system bus (legacy C
-     * libratbag).  Returns the client and which bus was used so the
-     * frontend can show the correct help text. */
-    pub async fn connect() -> Result<(Self, BusType)> {
-        /* 1. Try session bus (libratbag-rs / ratbagd 2.x) */
-        if let Ok(conn) = Connection::session().await {
-            if Self::probe_ratbagd(&conn).await {
-                tracing::info!("Connected to ratbagd on the session bus");
-                return Ok((Self { conn }, BusType::Session));
+    /* Locate a running ratbag1 service, probing the session bus first (where
+     * the modern udev-based ratbagd-rs lives) and falling back to the system
+     * bus (legacy C ratbagd / pre-udev ratbagd-rs). Both expose the identical
+     * `org.freedesktop.ratbag1` interface, so the rest of the client is
+     * bus-agnostic.
+     *
+     * Probing avoids the failure mode where the system bus has a stale
+     * D-Bus-activation stub that errors with NameHasNoOwner/"startup job
+     * failed" while the real daemon is on the session bus. */
+    pub async fn connect() -> Result<(Self, String)> {
+        let mut last_err: Option<anyhow::Error> = None;
+        for bus in [BusKind::Session, BusKind::System] {
+            match Self::try_connect(bus).await {
+                Ok(client) => {
+                    info!("Connected to ratbag1 on the {} bus", bus.as_str());
+                    return Ok((client, bus.as_str().to_string()));
+                }
+                Err(e) => {
+                    info!("No ratbag1 service on the {} bus: {e:#}", bus.as_str());
+                    last_err = Some(e);
+                }
             }
-            tracing::info!("Session bus reachable but ratbagd not found there, trying system bus…");
         }
-
-        /* 2. Fall back to system bus (legacy C libratbag) */
-        let conn = Connection::system()
-            .await
-            .context("Cannot connect to either the session or system D-Bus")?;
-        if Self::probe_ratbagd(&conn).await {
-            tracing::info!("Connected to ratbagd on the system bus (legacy)");
-            return Ok((Self { conn }, BusType::System));
-        }
-
-        Err(anyhow!(
-            "ratbagd is not running on the session bus or the system bus. \
-             Start the daemon with: systemctl --user start ratbagd (libratbag-rs) \
-             or sudo systemctl start ratbagd (legacy)"
-        ))
+        Err(last_err.unwrap_or_else(|| anyhow!("Cannot connect to any D-Bus instance")))
+            .context("ratbagd not found on the session or system bus")
     }
 
-    /* Quick probe: try to read the Manager APIVersion property to confirm
-     * ratbagd is actually present on the given connection. */
-    async fn probe_ratbagd(conn: &Connection) -> bool {
-        let result = conn
-            .call_method(
-                Some(BUS_NAME),
-                MANAGER_PATH,
-                Some("org.freedesktop.DBus.Properties"),
-                "Get",
-                &(MANAGER_IFACE, "APIVersion"),
-            )
-            .await;
-        result.is_ok()
+    /* Connect to one bus and confirm a ratbag1 daemon is actually answering
+     * (reading APIVersion both triggers activation and verifies the name is
+     * served), so a bus with no live daemon fails fast instead of yielding a
+     * connection that errors on first real use. */
+    async fn try_connect(bus: BusKind) -> Result<Self> {
+        let conn = match bus {
+            BusKind::Session => Connection::session()
+                .await
+                .context("Cannot connect to the session D-Bus")?,
+            BusKind::System => Connection::system()
+                .await
+                .context("Cannot connect to the system D-Bus")?,
+        };
+        let client = Self { conn };
+        client
+            .api_version()
+            .await
+            .context("ratbag1 service did not respond")?;
+        Ok(client)
     }
 
     /* Returns a reference to the underlying zbus Connection for signal subscriptions. */
@@ -250,8 +267,17 @@ impl RatbagClient {
         dpi_x: u32,
         dpi_y: Option<u32>,
     ) -> Result<()> {
-        let y = dpi_y.unwrap_or(dpi_x);
-        let owned = to_owned_value(Value::from((dpi_x, y)))?;
+        /* The Resolution property is a variant whose inner type must match the
+         * device's capability: a single `u` for devices with one DPI value, or
+         * a `(uu)` struct only for devices that support separate X/Y. Sending a
+         * tuple to a single-DPI device fails with "Device does not support
+         * separate X/Y resolution", so only use the tuple when a distinct
+         * dpi_y is actually requested. */
+        let inner = match dpi_y {
+            Some(y) if y != dpi_x => Value::from((dpi_x, y)),
+            _ => Value::from(dpi_x),
+        };
+        let owned = to_owned_value(inner)?;
         let wrapped = Value::Value(Box::new(owned.into()));
         self.set_property(path, RESOLUTION_IFACE, "Resolution", wrapped)
             .await

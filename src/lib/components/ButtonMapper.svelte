@@ -2,6 +2,7 @@
 <script lang="ts">
     import type { ProfileDto, ButtonDto, ActionValueDto } from "$lib/types";
     import { ACTION_TYPES, COMMON_BUTTONS, SPECIAL_ACTIONS } from "$lib/types";
+    import { formatButtonAction } from "$lib/mouse/actions";
     import { setButtonMapping } from "$lib/ipc/commands";
     import { addToast } from "$lib/stores/toast.svelte";
 
@@ -32,26 +33,6 @@
             }
         }
     });
-
-    function formatAction(btn: ButtonDto): string {
-        const v = btn.action_value;
-        switch (v.kind) {
-            case "none":
-                return "None";
-            case "button":
-                return COMMON_BUTTONS[v.button] ?? `Button ${v.button}`;
-            case "special":
-                return SPECIAL_ACTIONS[v.special] ?? `Special ${v.special}`;
-            case "key":
-                return `Key ${v.keycode}`;
-            case "macro":
-                return `Macro (${v.entries.length} steps)`;
-            case "unknown":
-                return "Unknown";
-            default:
-                return "\u2014";
-        }
-    }
 
     function startEdit(btn: ButtonDto) {
         editIdx = btn.index;
@@ -222,7 +203,7 @@
                     </span>
                     <div class="min-w-0">
                         <div class="text-sm truncate">
-                            {buttonLabel(btn.index)}: {formatAction(btn)}
+                            {buttonLabel(btn.index)}: {formatButtonAction(btn)}
                         </div>
                         <div class="text-[10px] text-base-content/30">
                             {ACTION_TYPES[btn.action_type] ?? "Unknown"}

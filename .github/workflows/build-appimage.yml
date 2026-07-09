@@ -32,6 +32,7 @@ jobs:
             pkg-config \
             gcc \
             file \
+            jq \
             nodejs \
             git
       - name: Checkout repository
@@ -75,11 +76,16 @@ jobs:
           curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
           cargo binstall tauri-cli --version "^2" --no-confirm
 
-      - name: Inject version from tag into Cargo.toml
+      - name: Verify tag matches Cargo.toml (drift guard)
         if: startsWith(github.ref, 'refs/tags/v')
         run: |
-          VERSION="${GITHUB_REF_NAME#v}"
-          sed -i "0,/^version *= *\"[^\"]*\"/{s/^version *= *\"[^\"]*\"/version = \"${VERSION}\"/}" src-tauri/Cargo.toml
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          CARGO_VERSION=$(sed -n 's/^version *= *"\(.*\)"/\1/p' src-tauri/Cargo.toml | head -1)
+          if [ "$TAG_VERSION" != "$CARGO_VERSION" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME requires Cargo.toml version $TAG_VERSION but it is $CARGO_VERSION. Use scripts/release.sh to bump and tag atomically."
+            exit 1
+          fi
+          echo "✓ Tag and Cargo.toml both at $TAG_VERSION"
 
       - name: Build Twister binary
         run: cargo tauri build --no-bundle
@@ -167,11 +173,56 @@ jobs:
             echo "**Full Changelog**: https://github.com/${{ github.repository }}/compare/${PREV:-}...${TAG}"
           } > release_notes.md
 
+      - name: Sign AppImage (Tauri updater)
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: |
+          APPIMAGE=$(ls src-tauri/target/release/bundle/appimage/Twister_*_amd64.AppImage)
+          # `tauri signer sign` writes "$APPIMAGE.sig" beside the AppImage and
+          # picks up the key + password from the env vars above.
+          npx --yes @tauri-apps/cli signer sign "$APPIMAGE"
+          ls -la "${APPIMAGE}" "${APPIMAGE}.sig"
+
+      - name: Emit latest.json (Tauri updater manifest)
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          BUNDLE=src-tauri/target/release/bundle/appimage
+          APPIMAGE_PATH=$(ls "$BUNDLE"/Twister_*_amd64.AppImage)
+          APPIMAGE=$(basename "$APPIMAGE_PATH")
+          SIGNATURE=$(cat "${APPIMAGE_PATH}.sig")
+          PUB_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          NOTES=$(cat release_notes.md 2>/dev/null || echo "Release ${VERSION}")
+          URL="https://github.com/${{ github.repository }}/releases/download/${GITHUB_REF_NAME}/${APPIMAGE}"
+
+          jq -n \
+            --arg version "$VERSION" \
+            --arg pub_date "$PUB_DATE" \
+            --arg notes "$NOTES" \
+            --arg sig "$SIGNATURE" \
+            --arg url "$URL" \
+            '{
+              version: $version,
+              pub_date: $pub_date,
+              notes: $notes,
+              platforms: {
+                "linux-x86_64": { signature: $sig, url: $url }
+              }
+            }' > "$BUNDLE/latest.json"
+
+          echo "--- latest.json ---"
+          cat "$BUNDLE/latest.json"
+
       - name: Upload AppImage to Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: src-tauri/target/release/bundle/appimage/Twister_*.AppImage
+          files: |
+            src-tauri/target/release/bundle/appimage/Twister_*_amd64.AppImage
+            src-tauri/target/release/bundle/appimage/Twister_*_amd64.AppImage.sig
+            src-tauri/target/release/bundle/appimage/latest.json
           tag_name: ${{ github.ref_name }}
           name: "Twister ${{ github.ref_name }}"
           body_path: release_notes.md
