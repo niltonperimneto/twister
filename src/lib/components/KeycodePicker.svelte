@@ -124,8 +124,8 @@
         border: 1px solid oklch(1 0 0 / 0.05);
         background: linear-gradient(
             to bottom,
-            oklch(0.28 0.02 265 / 0.8),
-            oklch(0.24 0.015 265 / 0.8)
+            color-mix(in oklab, var(--color-base-content) 14%, transparent),
+            color-mix(in oklab, var(--color-base-content) 9%, transparent)
         );
         color: oklch(0.92 0 0);
         font-size: 10px;
@@ -139,8 +139,8 @@
         transition: all var(--dur-fast) var(--ease-out);
     }
     .kc-btn:hover {
-        border-color: oklch(0.74 0.16 248 / 0.35);
-        background: oklch(0.34 0.06 248);
+        border-color: color-mix(in oklab, var(--color-primary) 35%, transparent);
+        background: color-mix(in oklab, var(--color-primary) 35%, var(--color-base-300));
     }
     .kc-btn:active {
         transform: scale(0.95);

@@ -40,7 +40,7 @@ fn main() {
             commands::set_led_brightness,
             commands::set_led_effect_duration,
             commands::commit_device,
-            commands::detect_surface_mode,
+            commands::detect_desktop_environment,
             commands::connect_clackd,
             commands::list_keyboards,
             commands::get_keyboard,

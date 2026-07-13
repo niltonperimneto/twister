@@ -7,6 +7,8 @@
     import auraLogo from "$lib/assets/aura-logo.svg";
     import { openUrl } from "$lib/ipc/commands";
     import { updaterStore } from "$lib/stores/updater.svelte";
+    import { themeStore } from "$lib/stores/theme.svelte";
+    import { themeList, themes } from "$lib/themes";
 
     const updater = updaterStore;
 
@@ -38,6 +40,10 @@
         const checked = (e.target as HTMLInputElement).checked;
         playStartupAnimation = checked;
         localStorage.setItem("twister_play_startup_animation", String(checked));
+    }
+
+    function handleThemeChange(e: Event) {
+        themeStore.setTheme((e.target as HTMLSelectElement).value);
     }
 </script>
 
@@ -206,12 +212,34 @@
                                 <span class="text-xs font-medium text-base-content/85">Play Startup Animation</span>
                                 <span class="text-[9px] text-base-content/40">Show the boot scan screen on every launch, not just the first run</span>
                             </div>
-                            <input 
-                                type="checkbox" 
-                                class="toggle toggle-primary toggle-xs cursor-pointer" 
+                            <input
+                                type="checkbox"
+                                class="toggle toggle-primary toggle-xs cursor-pointer"
                                 checked={playStartupAnimation}
                                 onchange={handleToggleAnimation}
                             />
+                        </div>
+                        <div class="flex items-center justify-between py-1 border-b border-base-content/5">
+                            <div class="flex flex-col">
+                                <span class="text-xs font-medium text-base-content/85">Theme</span>
+                                <span class="text-[9px] text-base-content/40">
+                                    {#if themeStore.selection === "system"}
+                                        Follows your desktop environment — detected: {themes[themeStore.resolvedId]?.name ?? themeStore.resolvedId}
+                                    {:else}
+                                        {themes[themeStore.resolvedId]?.description ?? ""}
+                                    {/if}
+                                </span>
+                            </div>
+                            <select
+                                class="select select-xs bg-base-300/50 border border-base-content/10 rounded-md cursor-pointer text-xs"
+                                value={themeStore.selection}
+                                onchange={handleThemeChange}
+                            >
+                                <option value="system">System (auto)</option>
+                                {#each themeList as theme (theme.id)}
+                                    <option value={theme.id}>{theme.name}</option>
+                                {/each}
+                            </select>
                         </div>
                     </div>
                 </div>

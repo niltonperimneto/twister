@@ -196,12 +196,12 @@
         border-color: oklch(1 0 0 / 0.18);
     }
     .kbd-cap-selected {
-        background: oklch(0.35 0.08 248) !important;
-        color: oklch(0.95 0.02 248) !important;
-        border-color: oklch(0.74 0.16 248) !important;
+        background: color-mix(in oklab, var(--color-primary) 40%, var(--color-base-300)) !important;
+        color: color-mix(in oklab, var(--color-primary) 10%, white) !important;
+        border-color: var(--color-primary) !important;
         box-shadow:
-            0 0 0 2px oklch(0.74 0.16 248 / 0.7),
-            0 0 12px 0 oklch(0.74 0.16 248 / 0.5) !important;
+            0 0 0 2px color-mix(in oklab, var(--color-primary) 70%, transparent),
+            0 0 12px 0 color-mix(in oklab, var(--color-primary) 50%, transparent) !important;
         text-shadow: none !important;
         animation: none !important;
     }

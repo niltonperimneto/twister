@@ -83,6 +83,14 @@ export async function commitDevice(path: string): Promise<number> {
 }
 
 /* ------------------------------------------------------------------ */
+/* Desktop environment detection                                       */
+/* ------------------------------------------------------------------ */
+
+export async function detectDesktopEnvironment(): Promise<string> {
+  return invoke<string>('detect_desktop_environment');
+}
+
+/* ------------------------------------------------------------------ */
 /* Keyboards (clackd)                                                  */
 /* ------------------------------------------------------------------ */
 

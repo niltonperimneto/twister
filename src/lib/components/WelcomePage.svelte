@@ -90,7 +90,7 @@
     <!-- Minimalist glassmorphic card -->
     <div
         class="relative z-10 flex flex-col items-center max-w-sm w-full p-10 rounded-3xl border border-white/5 bg-white/[0.015] backdrop-blur-2xl text-center"
-        style="box-shadow: 0 30px 70px -20px rgba(0, 0, 0, 0.45), inset 0 1px 0 0 rgba(255, 255, 255, 0.05), 0 0 50px -10px oklch(0.74 0.16 248 / 0.05);"
+        style="box-shadow: 0 30px 70px -20px rgba(0, 0, 0, 0.45), inset 0 1px 0 0 rgba(255, 255, 255, 0.05), 0 0 50px -10px color-mix(in oklab, var(--color-primary) 5%, transparent);"
         in:fly={{ y: 15, duration: duration(2 * DUR.slow), easing: easeOut }}
     >
         <!-- Floating logo in a soft glowing orb -->
