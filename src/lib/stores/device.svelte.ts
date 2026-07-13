@@ -35,6 +35,9 @@ class DeviceStore {
   loading: boolean = $state(false);
   error: string | null = $state(null);
   private unlistenResync: (() => void) | null = null;
+  /* Guards against overlapping background enumeration loops when init() is
+   * re-entered (e.g. via the StatusOverlay retry button). */
+  private pollGeneration = 0;
 
   /* Derived state */
   readonly isConnected: boolean = $derived(this.daemonStatus.status === 'connected');
@@ -57,66 +60,26 @@ class DeviceStore {
       const status = await connectDaemon();
       console.log('[twister] connectDaemon result:', JSON.stringify(status));
 
-      if (status.status === 'connected') {
-        this.daemonStatus = status;
+      this.daemonStatus = status;
 
-        /* ratbagd may still be enumerating devices right after D-Bus
-         * activation.  The G403 Hero's vendor HID++ interface can take
-         * up to 120s to probe.  Poll with escalating delays so that
-         * fast devices appear immediately while slow ones still get a
-         * chance.  Total wait ≈ 30s (1+1+2+2+4+4+8+8 = 30). */
-        let devList = await listDevices();
-        const delays = [1000, 1000, 2000, 2000, 4000, 4000, 8000, 8000];
-        for (let attempt = 0; devList.length === 0 && attempt < delays.length; attempt++) {
-          console.log(`[twister] 0 devices, retry ${attempt + 1}/${delays.length}…`);
-          await new Promise((r) => setTimeout(r, delays[attempt]));
-          devList = await listDevices();
-        }
+      if (status.status === 'connected') {
+        const devList = await listDevices();
         console.log('[twister] listDevices result:', JSON.stringify(devList));
 
-        this.devices = devList;
+        /* The UI is usable from here on — never hold `loading` through the
+         * slow enumeration retries below. */
+        this.loading = false;
 
         if (devList.length > 0) {
-          /* Pre-fetch each device to filter out "ghost" entries that the
-           * daemon registered but failed to probe (0 buttons + 0 LEDs +
-           * 0 resolutions across every profile).  These appear when the
-           * wrong hidraw interface is registered before the fix lands in
-           * the daemon binary. */
-          const loaded: { summary: typeof devList[number]; dto: DeviceDto }[] = [];
-          for (const s of devList) {
-            try {
-              const dto = await getDevice(s.path);
-              const hasCaps = dto.profiles.some(
-                (p) => p.buttons.length > 0 || p.leds.length > 0 || p.resolutions.length > 0,
-              );
-              if (hasCaps) {
-                loaded.push({ summary: s, dto });
-              } else {
-                console.warn(`[twister] Filtering ghost device ${s.path} (0 capabilities)`);
-              }
-            } catch (e) {
-              console.warn(`[twister] Skipping ${s.path}: ${e}`);
-            }
-          }
-
-          this.devices = loaded.map((l) => l.summary);
-
-          if (loaded.length > 0) {
-            /* Use the already-fetched DeviceDto to avoid a redundant D-Bus round-trip */
-            this.activeDevicePath = loaded[0].summary.path;
-            this.activeDevice = loaded[0].dto;
-            this.activeProfileIndex =
-              loaded[0].dto.profiles.find((p) => p.is_active)?.index ?? 0;
-            console.log(
-              '[twister] selectDevice done:',
-              this.activeDevice.name,
-              'profile:',
-              this.activeProfileIndex,
-            );
-          }
+          await this.adoptDevices(devList);
+        } else {
+          /* ratbagd may still be enumerating devices right after D-Bus
+           * activation.  The G403 Hero's vendor HID++ interface can take
+           * up to 120s to probe.  Poll in the background with escalating
+           * delays so slow devices still appear without blocking anything.
+           * Total wait ≈ 30s (1+1+2+2+4+4+8+8 = 30). */
+          void this.pollForDevices();
         }
-      } else {
-        this.daemonStatus = status;
       }
     } catch (e) {
       console.error('[twister] init() error:', e);
@@ -140,6 +103,71 @@ class DeviceStore {
       }).catch((e) => {
         console.error('[twister] Failed to subscribe to ratbag:resync:', e);
       });
+    }
+  }
+
+  /* Background enumeration: retry listDevices with escalating delays until
+   * something shows up or the attempts run out. Superseded by any newer
+   * init() call (generation check) so retries never fight a reconnect. */
+  private async pollForDevices(): Promise<void> {
+    const generation = ++this.pollGeneration;
+    const delays = [1000, 1000, 2000, 2000, 4000, 4000, 8000, 8000];
+    for (let attempt = 0; attempt < delays.length; attempt++) {
+      await new Promise((r) => setTimeout(r, delays[attempt]));
+      if (generation !== this.pollGeneration || !this.isConnected) return;
+      try {
+        const devList = await listDevices();
+        if (devList.length > 0) {
+          console.log('[twister] background enumeration found devices:', JSON.stringify(devList));
+          await this.adoptDevices(devList);
+          return;
+        }
+      } catch (e) {
+        console.warn(`[twister] background listDevices failed: ${e}`);
+      }
+      console.log(`[twister] 0 devices, retry ${attempt + 1}/${delays.length}…`);
+    }
+  }
+
+  /* Pre-fetch each device to filter out "ghost" entries that the daemon
+   * registered but failed to probe (0 buttons + 0 LEDs + 0 resolutions
+   * across every profile).  These appear when the wrong hidraw interface
+   * is registered before the fix lands in the daemon binary.  The first
+   * usable device becomes the active one. */
+  private async adoptDevices(devList: DeviceSummary[]): Promise<void> {
+    this.devices = devList;
+
+    const loaded: { summary: DeviceSummary; dto: DeviceDto }[] = [];
+    for (const s of devList) {
+      try {
+        const dto = await getDevice(s.path);
+        const hasCaps = dto.profiles.some(
+          (p) => p.buttons.length > 0 || p.leds.length > 0 || p.resolutions.length > 0,
+        );
+        if (hasCaps) {
+          loaded.push({ summary: s, dto });
+        } else {
+          console.warn(`[twister] Filtering ghost device ${s.path} (0 capabilities)`);
+        }
+      } catch (e) {
+        console.warn(`[twister] Skipping ${s.path}: ${e}`);
+      }
+    }
+
+    this.devices = loaded.map((l) => l.summary);
+
+    if (loaded.length > 0 && !this.activeDevice) {
+      /* Use the already-fetched DeviceDto to avoid a redundant D-Bus round-trip */
+      this.activeDevicePath = loaded[0].summary.path;
+      this.activeDevice = loaded[0].dto;
+      this.activeProfileIndex =
+        loaded[0].dto.profiles.find((p) => p.is_active)?.index ?? 0;
+      console.log(
+        '[twister] selectDevice done:',
+        this.activeDevice.name,
+        'profile:',
+        this.activeProfileIndex,
+      );
     }
   }
 

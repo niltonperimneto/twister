@@ -59,9 +59,9 @@ jobs:
           echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
       - name: Install Bun
-       run: |
-         curl -fsSL https://bun.com/install | bash
-         echo "$HOME/.bun/bin" >> $GITHUB_PATH
+        run: |
+          curl -fsSL https://bun.com/install | bash
+          echo "$HOME/.bun/bin" >> $GITHUB_PATH
 
       - name: Cache Rust dependencies
         uses: actions/cache@v5

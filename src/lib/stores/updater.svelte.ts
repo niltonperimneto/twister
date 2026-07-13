@@ -2,9 +2,9 @@
  *
  * Wraps @tauri-apps/plugin-updater. On startup we do one silent check ~5s after
  * mount so the UI is responsive first; user-driven checks come from the
- * AboutPage button. Installation uses the plugin's bundled dialog (configured
- * via `plugins.updater.dialog = true` in tauri.conf.json) plus
- * `process.relaunch()` to come back into the new build.
+ * AboutPage button. Installation drives the plugin's downloadAndInstall()
+ * directly (no bundled dialog) and then `process.relaunch()` to come back
+ * into the new build.
  *
  * The updater plugin is a no-op when the running build isn't an AppImage (the
  * plugin only knows how to self-replace AppImages on Linux), and check() will

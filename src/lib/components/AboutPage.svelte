@@ -1,6 +1,5 @@
 <!-- AboutPage — clean, compact project details & preferences & credits (GPLv3) -->
 <script lang="ts">
-    import { onMount } from "svelte";
     import { fade } from "svelte/transition";
     import { DUR, duration } from "$lib/motion";
     import { getVersion } from "@tauri-apps/api/app";
@@ -26,21 +25,6 @@
 
     let version: string = $state("");
     getVersion().then((v) => (version = v));
-
-    /* The splash plays automatically on first run only; this opt-in makes
-       it play on every launch */
-    let playStartupAnimation = $state(false);
-
-    onMount(() => {
-        playStartupAnimation =
-            localStorage.getItem("twister_play_startup_animation") === "true";
-    });
-
-    function handleToggleAnimation(e: Event) {
-        const checked = (e.target as HTMLInputElement).checked;
-        playStartupAnimation = checked;
-        localStorage.setItem("twister_play_startup_animation", String(checked));
-    }
 
     function handleThemeChange(e: Event) {
         themeStore.setTheme((e.target as HTMLSelectElement).value);
@@ -207,18 +191,6 @@
                         App Preferences
                     </div>
                     <div class="collapse-content px-4 pb-3 flex flex-col gap-2">
-                        <div class="flex items-center justify-between py-1 border-b border-base-content/5">
-                            <div class="flex flex-col">
-                                <span class="text-xs font-medium text-base-content/85">Play Startup Animation</span>
-                                <span class="text-[9px] text-base-content/40">Show the boot scan screen on every launch, not just the first run</span>
-                            </div>
-                            <input
-                                type="checkbox"
-                                class="toggle toggle-primary toggle-xs cursor-pointer"
-                                checked={playStartupAnimation}
-                                onchange={handleToggleAnimation}
-                            />
-                        </div>
                         <div class="flex items-center justify-between py-1 border-b border-base-content/5">
                             <div class="flex flex-col">
                                 <span class="text-xs font-medium text-base-content/85">Theme</span>

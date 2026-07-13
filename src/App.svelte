@@ -18,7 +18,6 @@
     import ButtonMapper from "$lib/components/ButtonMapper.svelte";
     import LedEditor from "$lib/components/LedEditor.svelte";
     import StatusOverlay from "$lib/components/StatusOverlay.svelte";
-    import WelcomePage from "$lib/components/WelcomePage.svelte";
     import AboutPage from "$lib/components/AboutPage.svelte";
     import DonatePage from "$lib/components/DonatePage.svelte";
     import KeyboardEditor from "$lib/components/KeyboardEditor.svelte";
@@ -27,6 +26,11 @@
     const store = deviceStore;
     const kb = keyboardStore;
     const appWindow = getCurrentWindow();
+
+    /* Intro mode: on launch the sidebar fills the whole content row and shows
+       the mouse/keyboard chooser; picking a kind docks it into the regular
+       sidebar (the flex-grow transition below is the morph animation). */
+    let introMode: boolean = $state(true);
 
     /* Which device class the editor area shows. Explicit sidebar selection
        wins (manualKind); otherwise default to whichever class actually has an
@@ -43,9 +47,12 @@
 
     /* The full-screen StatusOverlay is reserved for ratbagd, but must not block
        a keyboard-only setup (no ratbagd installed). Show it only when neither
-       daemon offers a usable UI. */
+       daemon offers a usable UI — and never over the intro chooser, whose
+       cards already surface per-daemon status. */
     let showStatusOverlay = $derived(
-        store.daemonStatus.status !== "connected" && !kb.isConnected,
+        !introMode &&
+            store.daemonStatus.status !== "connected" &&
+            !kb.isConnected,
     );
 
     type Tab = "dpi" | "buttons" | "leds";
@@ -54,7 +61,7 @@
     let sidebarCollapsed: boolean = $state(
         localStorage.getItem("twister_sidebar_collapsed") === "true",
     );
-    let currentView: View = $state("welcome");
+    let currentView: View = $state("devices");
     let isMaximized: boolean = $state(false);
     let committing: boolean = $state(false);
 
@@ -112,6 +119,18 @@
         currentView = view;
     }
 
+    /* Intro chooser hand-off: pick the device class and dock the sidebar. */
+    function handleSelectKind(kind: "mouse" | "keyboard") {
+        manualKind = kind;
+        currentView = "devices";
+        introMode = false;
+    }
+
+    /* Reverse morph: the sidebar's logo button expands back to the chooser. */
+    function handleBackToChooser() {
+        introMode = true;
+    }
+
     /* Unified Apply — routes to whichever device class is being edited */
     async function handleApply() {
         if (committing) return;
@@ -148,15 +167,6 @@
         store.init();
         kb.init();
         updaterStore.init();
-
-        /* Splash plays on first run only, unless the user explicitly
-           re-enabled it in About */
-        const animPref = localStorage.getItem("twister_play_startup_animation");
-        const firstRun = localStorage.getItem("twister_first_run_done") === null;
-        if (animPref !== "true" && !firstRun) {
-            currentView = "devices";
-        }
-        localStorage.setItem("twister_first_run_done", "1");
 
         /* Track maximize state for corner radius */
         appWindow.isMaximized().then((v) => {
@@ -213,6 +223,7 @@
             activeKind={activeDeviceKind}
             {currentView}
             collapsed={sidebarCollapsed}
+            intro={introMode}
             onSelectDevice={(path) => {
                 manualKind = "mouse";
                 currentView = "devices";
@@ -223,10 +234,25 @@
                 currentView = "devices";
                 kb.selectKeyboard(id);
             }}
+            onSelectKind={handleSelectKind}
+            onBackToChooser={handleBackToChooser}
             onNavigate={handleNavigate}
         />
 
-        <main class="flex-1 min-w-0 min-h-0 overflow-hidden relative">
+        <!-- flex-grow 0↔1 mirrors the sidebar's morph: collapsed to nothing
+             while the intro chooser fills the row, expanding as it docks -->
+        <main
+            class="min-w-0 min-h-0 overflow-hidden relative"
+            style="
+                flex-basis: 0%;
+                flex-grow: {introMode ? 0 : 1};
+                opacity: {introMode ? 0 : 1};
+                transition:
+                    flex-grow var(--dur-slow) var(--ease-out),
+                    opacity var(--dur-slow) var(--ease-out);
+            "
+            inert={introMode}
+        >
             {#key currentView}
                 <div
                     class="absolute inset-0 flex flex-col"
@@ -238,9 +264,7 @@
                     }}
                     out:fade={{ duration: duration(DUR.fast) }}
                 >
-                    {#if currentView === "welcome"}
-                        <WelcomePage onNavigate={handleNavigate} />
-                    {:else if currentView === "about"}
+                    {#if currentView === "about"}
                         <AboutPage />
                     {:else if currentView === "donate"}
                         <DonatePage />
