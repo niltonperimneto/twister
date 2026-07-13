@@ -21,6 +21,21 @@ The persisted choice lives in `localStorage` under `twister_theme`:
 - Any explicit theme id is sticky until the user changes it in
   **About → App Preferences → Theme**.
 
+## System accent following
+
+On top of the theme tokens sits an optional accent override
+(**About → App Preferences → Follow system accent**, on by default,
+persisted as `twister_follow_system_accent`). The Rust backend reads
+`org.freedesktop.appearance/accent-color` from the XDG Desktop Portal
+(`watch_system_accent` command) and re-emits live changes as
+`system:accent` events; when an accent is available the store replaces
+`--color-primary` and `--color-primary-content` (content color picked
+by WCAG luminance) after applying the theme, so every `color-mix()`
+derivation re-tints while surfaces and radii stay from the theme. If
+the portal or the key is missing (older DEs, bare WMs, browser dev),
+the theme's stock accent is used silently. Helpers live in
+`accent.ts`.
+
 ## Adding a theme
 
 1. Copy an existing theme module (e.g. `cosmic.ts`) to `mytheme.ts`.

@@ -8,8 +8,10 @@ mod clackd_client;
 mod commands;
 mod dbus_client;
 mod dto;
+mod portal;
 
 use commands::{DaemonState, KeyboardState};
+use portal::AccentState;
 
 fn main() {
     tracing_subscriber::fmt()
@@ -27,6 +29,7 @@ fn main() {
         .plugin(tauri_plugin_process::init())
         .manage(DaemonState::default())
         .manage(KeyboardState::default())
+        .manage(AccentState::default())
         .invoke_handler(tauri::generate_handler![
             commands::connect_daemon,
             commands::list_devices,
@@ -41,6 +44,7 @@ fn main() {
             commands::set_led_effect_duration,
             commands::commit_device,
             commands::detect_desktop_environment,
+            portal::watch_system_accent,
             commands::connect_clackd,
             commands::list_keyboards,
             commands::get_keyboard,

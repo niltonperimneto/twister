@@ -29,6 +29,10 @@
     function handleThemeChange(e: Event) {
         themeStore.setTheme((e.target as HTMLSelectElement).value);
     }
+
+    function handleFollowAccentChange(e: Event) {
+        themeStore.setFollowSystemAccent((e.target as HTMLInputElement).checked);
+    }
 </script>
 
 <div
@@ -212,6 +216,24 @@
                                     <option value={theme.id}>{theme.name}</option>
                                 {/each}
                             </select>
+                        </div>
+                        <div class="flex items-center justify-between py-1">
+                            <div class="flex flex-col">
+                                <span class="text-xs font-medium text-base-content/85">Follow system accent</span>
+                                <span class="text-[9px] text-base-content/40">
+                                    {#if themeStore.systemAccent}
+                                        Re-tints the theme with your desktop's accent color
+                                    {:else}
+                                        No system accent detected — using the theme's own accent
+                                    {/if}
+                                </span>
+                            </div>
+                            <input
+                                type="checkbox"
+                                class="toggle toggle-primary toggle-xs cursor-pointer"
+                                checked={themeStore.followSystemAccent}
+                                onchange={handleFollowAccentChange}
+                            />
                         </div>
                     </div>
                 </div>
