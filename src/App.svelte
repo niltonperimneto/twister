@@ -126,6 +126,11 @@
         introMode = false;
     }
 
+    /* Reverse morph: the sidebar's logo button expands back to the chooser. */
+    function handleBackToChooser() {
+        introMode = true;
+    }
+
     /* Unified Apply — routes to whichever device class is being edited */
     async function handleApply() {
         if (committing) return;
@@ -230,6 +235,7 @@
                 kb.selectKeyboard(id);
             }}
             onSelectKind={handleSelectKind}
+            onBackToChooser={handleBackToChooser}
             onNavigate={handleNavigate}
         />
 

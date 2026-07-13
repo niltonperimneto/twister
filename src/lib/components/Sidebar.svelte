@@ -28,6 +28,7 @@
         onSelectDevice: (path: string) => void;
         onSelectKeyboard: (id: string) => void;
         onSelectKind: (kind: "mouse" | "keyboard") => void;
+        onBackToChooser: () => void;
         onNavigate: (view: View) => void;
     }
 
@@ -43,8 +44,18 @@
         onSelectDevice,
         onSelectKeyboard,
         onSelectKind,
+        onBackToChooser,
         onNavigate,
     }: Props = $props();
+
+    /* Top-of-sidebar logo button: context-sensitive. From the editor it
+       returns to the device-kind chooser; from Support/About it first goes
+       back to the editor. The label always says what a click will do. */
+    const homeAction: { label: string; act: () => void } = $derived(
+        currentView === "devices"
+            ? { label: "Switch device", act: onBackToChooser }
+            : { label: "Back to devices", act: () => onNavigate("devices") },
+    );
 
     const bottomNav: { id: View; label: string; icon: string }[] = [
         { id: "donate", label: "Support", icon: "heart" },
@@ -216,99 +227,156 @@
             style="scrollbar-width: none;"
             in:fade={{ duration: duration(DUR.base), delay: duration(DUR.fast) }}
         >
-            <!-- Devices nav — the way back to the editor from Support/About,
-                 even when nothing is connected -->
+            <!-- Logo button — context-sensitive: back to the chooser from the
+                 editor, back to the editor from Support/About -->
             <section class="px-2">
                 <button
-                    onclick={() => onNavigate("devices")}
-                    class="sidebar-item {collapsed ? 'rail-item' : ''} {currentView ===
-                    'devices'
-                        ? 'sidebar-item-active'
-                        : ''}"
-                    title={collapsed ? "Devices" : undefined}
+                    onclick={homeAction.act}
+                    class="sidebar-item sidebar-home {collapsed ? 'rail-item' : ''}"
+                    title={collapsed ? homeAction.label : undefined}
                 >
-                    <Icon name="mouse" class="w-4 h-4 shrink-0 " />
+                    <img
+                        src={auraLogo}
+                        alt=""
+                        class="w-5 h-5 shrink-0 drop-shadow-[0_0_6px_rgba(114,137,218,0.35)]"
+                    />
                     {#if !collapsed}
-                        <span class="text-sm font-medium">Devices</span>
+                        <span class="text-sm font-semibold flex-1 min-w-0 truncate"
+                            >{homeAction.label}</span
+                        >
+                        <Icon
+                            name="chevron-left"
+                            class="w-3.5 h-3.5 shrink-0 opacity-50"
+                        />
                     {/if}
                 </button>
             </section>
 
             <div class="mx-3 border-t border-base-300/30"></div>
 
-            <!-- Connected devices (selecting one also navigates to the editor) -->
-            <section class="px-2">
-                {#if !collapsed}
-                    <h2 class="sidebar-heading">Connected</h2>
-                {/if}
-                <ul class="flex flex-col gap-0.5">
-                    {#each devices as device (device.path)}
-                        {@const isActive =
-                            currentView === "devices" &&
-                            activeKind === "mouse" &&
-                            activeDevice?.path === device.path}
-                        <li>
-                            <button
-                                onclick={() => onSelectDevice(device.path)}
-                                class="sidebar-item {collapsed ? 'rail-item' : ''} {isActive
-                                    ? 'sidebar-item-active'
-                                    : ''}"
-                                title={collapsed ? device.name : undefined}
-                            >
-                                <Icon name="mouse" class="w-4 h-4 shrink-0 " />
-                                {#if !collapsed}
-                                    <div class="flex flex-col min-w-0">
-                                        <span class="text-sm font-medium truncate"
-                                            >{device.name}</span
-                                        >
-                                        <span
-                                            class="text-[10px] text-base-content/65 truncate"
-                                            >{device.model}</span
-                                        >
-                                    </div>
-                                {/if}
-                            </button>
-                        </li>
-                    {/each}
-                    {#each keyboards as keeb (keeb.id)}
-                        {@const isActive =
-                            currentView === "devices" &&
-                            activeKind === "keyboard" &&
-                            activeKeyboardId === keeb.id}
-                        <li>
-                            <button
-                                onclick={() => onSelectKeyboard(keeb.id)}
-                                class="sidebar-item {collapsed ? 'rail-item' : ''} {isActive
-                                    ? 'sidebar-item-active'
-                                    : ''}"
-                                title={collapsed ? keeb.name : undefined}
-                            >
-                                <Icon name="keyboard" class="w-4 h-4 shrink-0 " />
-                                {#if !collapsed}
-                                    <div class="flex flex-col min-w-0">
-                                        <span class="text-sm font-medium truncate"
-                                            >{keeb.name}</span
-                                        >
-                                        <span
-                                            class="text-[10px] text-base-content/65 truncate"
-                                            >Keyboard</span
-                                        >
-                                    </div>
-                                {/if}
-                            </button>
-                        </li>
-                    {/each}
-                </ul>
-                {#if !collapsed && devices.length === 0 && keyboards.length === 0}
-                    <p class="text-xs text-base-content/25 px-3 py-2 italic">
-                        No devices found
-                    </p>
-                {/if}
-            </section>
+            <!-- Connected devices, grouped by kind (selecting one also
+                 navigates to the editor) -->
+            {#if devices.length > 0}
+                <section class="px-2">
+                    {#if !collapsed}
+                        <h2 class="sidebar-heading">
+                            Mice
+                            <span class="sidebar-heading-count">{devices.length}</span>
+                        </h2>
+                    {/if}
+                    <ul class="flex flex-col gap-0.5">
+                        {#each devices as device (device.path)}
+                            {@const isActive =
+                                currentView === "devices" &&
+                                activeKind === "mouse" &&
+                                activeDevice?.path === device.path}
+                            <li>
+                                <button
+                                    onclick={() => onSelectDevice(device.path)}
+                                    class="sidebar-item {collapsed ? 'rail-item' : ''} {isActive
+                                        ? 'sidebar-item-active'
+                                        : ''}"
+                                    title={collapsed ? device.name : undefined}
+                                >
+                                    <span class="icon-chip {isActive ? 'icon-chip-active' : ''}">
+                                        <Icon name="mouse" class="w-4 h-4" />
+                                    </span>
+                                    {#if !collapsed}
+                                        <div class="flex flex-col min-w-0">
+                                            <span class="text-sm font-medium truncate"
+                                                >{device.name}</span
+                                            >
+                                            <span
+                                                class="text-[10px] text-base-content/60 truncate"
+                                                >{device.model}</span
+                                            >
+                                        </div>
+                                    {/if}
+                                </button>
+                            </li>
+                        {/each}
+                    </ul>
+                </section>
+            {/if}
 
-            <!-- Bottom: Support / About -->
-            <section class="px-2 mt-auto">
-                <div class="mx-1 mb-2 border-t border-base-300/30"></div>
+            {#if keyboards.length > 0}
+                <section class="px-2">
+                    {#if !collapsed}
+                        <h2 class="sidebar-heading">
+                            Keyboards
+                            <span class="sidebar-heading-count">{keyboards.length}</span>
+                        </h2>
+                    {/if}
+                    <ul class="flex flex-col gap-0.5">
+                        {#each keyboards as keeb (keeb.id)}
+                            {@const isActive =
+                                currentView === "devices" &&
+                                activeKind === "keyboard" &&
+                                activeKeyboardId === keeb.id}
+                            <li>
+                                <button
+                                    onclick={() => onSelectKeyboard(keeb.id)}
+                                    class="sidebar-item {collapsed ? 'rail-item' : ''} {isActive
+                                        ? 'sidebar-item-active'
+                                        : ''}"
+                                    title={collapsed ? keeb.name : undefined}
+                                >
+                                    <span class="icon-chip {isActive ? 'icon-chip-active' : ''}">
+                                        <Icon name="keyboard" class="w-4 h-4" />
+                                    </span>
+                                    {#if !collapsed}
+                                        <div class="flex flex-col min-w-0">
+                                            <span class="text-sm font-medium truncate"
+                                                >{keeb.name}</span
+                                            >
+                                            <span
+                                                class="text-[10px] text-base-content/60 truncate"
+                                                >VIA keyboard</span
+                                            >
+                                        </div>
+                                    {/if}
+                                </button>
+                            </li>
+                        {/each}
+                    </ul>
+                </section>
+            {/if}
+
+            {#if !collapsed && devices.length === 0 && keyboards.length === 0}
+                <p class="text-xs text-base-content/30 px-4 py-2 italic">
+                    No devices found
+                </p>
+            {/if}
+
+            <!-- Bottom: daemon health + Support / About -->
+            <section class="px-2 mt-auto flex flex-col gap-2">
+                {#if !collapsed}
+                    <div class="px-3 flex flex-col gap-1" aria-label="Daemon status">
+                        <div class="flex items-center gap-1.5">
+                            <span
+                                class="w-1.5 h-1.5 rounded-full shrink-0 {deviceStore.isConnected
+                                    ? 'bg-success'
+                                    : 'bg-error'}"
+                                aria-hidden="true"
+                            ></span>
+                            <span class="text-[10px] font-mono text-base-content/45"
+                                >ratbagd · {deviceStore.isConnected ? "running" : "offline"}</span
+                            >
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span
+                                class="w-1.5 h-1.5 rounded-full shrink-0 {keyboardStore.isConnected
+                                    ? 'bg-success'
+                                    : 'bg-error'}"
+                                aria-hidden="true"
+                            ></span>
+                            <span class="text-[10px] font-mono text-base-content/45"
+                                >clackd · {keyboardStore.isConnected ? "running" : "offline"}</span
+                            >
+                        </div>
+                    </div>
+                {/if}
+                <div class="mx-1 border-t border-base-300/30"></div>
                 <ul class="flex flex-col gap-0.5">
                     {#each bottomNav as nav (nav.id)}
                         {@const isActive = currentView === nav.id}
@@ -320,7 +388,7 @@
                                     : ''}"
                                 title={collapsed ? nav.label : undefined}
                             >
-                                <Icon name={nav.icon} class="w-4 h-4 shrink-0 " />
+                                <Icon name={nav.icon} class="w-4 h-4 shrink-0" />
                                 {#if !collapsed}
                                     <span class="text-sm font-medium">{nav.label}</span>
                                 {/if}
