@@ -43,6 +43,7 @@ jobs:
             gcc \
             file \
             jq \
+            unzip \
             nodejs \
             git
       - name: Checkout repository
