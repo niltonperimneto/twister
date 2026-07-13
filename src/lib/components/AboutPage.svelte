@@ -1,6 +1,5 @@
 <!-- AboutPage — clean, compact project details & preferences & credits (GPLv3) -->
 <script lang="ts">
-    import { onMount } from "svelte";
     import { fade } from "svelte/transition";
     import { DUR, duration } from "$lib/motion";
     import { getVersion } from "@tauri-apps/api/app";
@@ -24,21 +23,6 @@
 
     let version: string = $state("");
     getVersion().then((v) => (version = v));
-
-    /* The splash plays automatically on first run only; this opt-in makes
-       it play on every launch */
-    let playStartupAnimation = $state(false);
-
-    onMount(() => {
-        playStartupAnimation =
-            localStorage.getItem("twister_play_startup_animation") === "true";
-    });
-
-    function handleToggleAnimation(e: Event) {
-        const checked = (e.target as HTMLInputElement).checked;
-        playStartupAnimation = checked;
-        localStorage.setItem("twister_play_startup_animation", String(checked));
-    }
 </script>
 
 <div
@@ -190,29 +174,6 @@
                                 </span>
                             </div>
                         {/if}
-                    </div>
-                </div>
-
-                <!-- Preferences Collapse -->
-                <div class="collapse collapse-arrow bg-base-300/35 border border-base-content/5 rounded-lg text-left">
-                    <input type="checkbox" id="preferences-collapse-toggle" class="peer" checked />
-                    <div class="collapse-title text-[11px] font-semibold py-2.5 px-4 flex items-center gap-2">
-                        <svg class="w-3.5 h-3.5 text-accent/70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-                        App Preferences
-                    </div>
-                    <div class="collapse-content px-4 pb-3 flex flex-col gap-2">
-                        <div class="flex items-center justify-between py-1 border-b border-base-content/5">
-                            <div class="flex flex-col">
-                                <span class="text-xs font-medium text-base-content/85">Play Startup Animation</span>
-                                <span class="text-[9px] text-base-content/40">Show the boot scan screen on every launch, not just the first run</span>
-                            </div>
-                            <input 
-                                type="checkbox" 
-                                class="toggle toggle-primary toggle-xs cursor-pointer" 
-                                checked={playStartupAnimation}
-                                onchange={handleToggleAnimation}
-                            />
-                        </div>
                     </div>
                 </div>
 
