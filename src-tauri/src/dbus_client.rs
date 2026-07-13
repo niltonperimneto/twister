@@ -77,8 +77,15 @@ impl RatbagClient {
     /* Connect to one bus and confirm a ratbag1 daemon is actually answering
      * (reading APIVersion both triggers activation and verifies the name is
      * served), so a bus with no live daemon fails fast instead of yielding a
-     * connection that errors on first real use. */
+     * connection that errors on first real use.
+     *
+     * The probe is timeout-bounded: a stale D-Bus activation stub can leave
+     * the APIVersion call waiting on a "startup job" that never finishes,
+     * which would otherwise hang connect_daemon — and the whole frontend —
+     * forever (the clackd client guards its slow path the same way). */
     async fn try_connect(bus: BusKind) -> Result<Self> {
+        const PROBE_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(5);
+
         let conn = match bus {
             BusKind::Session => Connection::session()
                 .await
@@ -88,9 +95,9 @@ impl RatbagClient {
                 .context("Cannot connect to the system D-Bus")?,
         };
         let client = Self { conn };
-        client
-            .api_version()
+        tokio::time::timeout(PROBE_TIMEOUT, client.api_version())
             .await
+            .map_err(|_| anyhow!("ratbag1 service did not respond within {PROBE_TIMEOUT:?}"))?
             .context("ratbag1 service did not respond")?;
         Ok(client)
     }

@@ -192,6 +192,14 @@ sudo ratbagd
 
 ---
 
+## Releasing
+
+Maintainer instructions for cutting a release — including the one-time
+updater signing-key setup required for the in-app updater to work — live in
+[docs/RELEASING.md](docs/RELEASING.md).
+
+---
+
 ## Architecture
 
 ```
@@ -202,13 +210,12 @@ twister/
 │   ├── lib/
 │   │   ├── components/           # UI components
 │   │   │   ├── Titlebar.svelte   # CSD titlebar with window controls
-│   │   │   ├── Sidebar.svelte    # Navigation, device list, profile tabs
+│   │   │   ├── Sidebar.svelte    # Intro device-kind chooser + navigation, device list
 │   │   │   ├── DeviceVisualizer.svelte  # SVG mouse map with hover glow
 │   │   │   ├── DpiEditor.svelte  # DPI resolution stage editor
 │   │   │   ├── ButtonMapper.svelte      # Button remapping editor
 │   │   │   ├── LedEditor.svelte  # LED lighting editor with colour wheel
 │   │   │   ├── StatusOverlay.svelte     # Daemon connection error overlay
-│   │   │   ├── WelcomePage.svelte
 │   │   │   ├── AboutPage.svelte
 │   │   │   └── DonatePage.svelte
 │   │   ├── stores/               # Svelte 5 rune-based reactive stores

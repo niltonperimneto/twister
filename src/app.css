@@ -50,6 +50,12 @@
     /* ---- Glass compositing ---- */
     --backdrop-blur: blur(20px) saturate(1.4);
     --glass-inset: inset 0 1px 0 0 oklch(1 0 0 / 0.08);
+
+    /* ---- Motion tokens (mirrored in src/lib/motion.ts) ---- */
+    --dur-fast: 150ms;
+    --dur-base: 250ms;
+    --dur-slow: 400ms;
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 html,
