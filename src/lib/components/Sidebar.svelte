@@ -422,11 +422,11 @@
     .kind-card:hover,
     .kind-card:focus-visible {
         transform: translateY(-3px);
-        border-color: oklch(0.74 0.16 248 / 0.35);
+        border-color: color-mix(in oklab, var(--color-primary) 35%, transparent);
         box-shadow:
             0 34px 80px -20px rgba(0, 0, 0, 0.55),
             inset 0 1px 0 0 rgba(255, 255, 255, 0.08),
-            0 0 40px -8px oklch(0.74 0.16 248 / 0.15);
+            0 0 40px -8px color-mix(in oklab, var(--color-primary) 15%, transparent);
     }
     .kind-card:active {
         transform: translateY(-1px) scale(0.99);
