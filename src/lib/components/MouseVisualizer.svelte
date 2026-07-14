@@ -464,6 +464,22 @@
         filter: drop-shadow(0 18px 26px oklch(0 0 0 / 0.45));
     }
 
+    /* Flat HIG themes: functional preview keeps its colors, loses the
+       ambient bloom and floating-chassis shadow */
+    :global([data-style="flat"]) .mouse-underglow {
+        display: none;
+    }
+    :global([data-style="flat"]) .mouse-body {
+        filter: none;
+    }
+    :global([data-style="flat"]) .led-ring,
+    :global([data-style="flat"]) .led-ring.hot,
+    :global([data-style="flat"]) .led-ring.sel,
+    :global([data-style="flat"]) .led-logo-core,
+    :global([data-style="flat"]) .led-logo.sel {
+        filter: none;
+    }
+
     .mouse-channel {
         fill: oklch(0 0 0 / 0.28);
         stroke: oklch(0 0 0 / 0.35);

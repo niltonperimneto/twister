@@ -7,6 +7,7 @@
     setProfileReportRate,
   } from '$lib/ipc/commands';
   import { addToast } from '$lib/stores/toast.svelte';
+  import Icon from './Icon.svelte';
 
   interface Props {
     profile: ProfileDto;
@@ -103,7 +104,7 @@
   <div class="editor-card">
     <div class="editor-card-header">
       <h3 class="text-sm font-medium flex items-center gap-2">
-        <svg class="w-3.5 h-3.5 opacity-60 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <Icon name="clock" class="w-3.5 h-3.5 opacity-60 text-primary" />
         Polling Rate
       </h3>
       <span class="text-xs font-mono text-primary font-bold">{localReportRate} Hz</span>

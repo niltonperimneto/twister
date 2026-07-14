@@ -150,6 +150,18 @@
         opacity: 0;
     }
 
+    /* Flat HIG themes: solid case, no frosted glass or ambient bloom */
+    :global([data-style="flat"]) .keyboard-underglow {
+        display: none;
+    }
+    :global([data-style="flat"]) .keyboard-case {
+        background: var(--surface-card);
+        border-color: var(--border-card);
+        box-shadow: none;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+    }
+
     .kbd-cap {
         position: absolute;
         display: flex;

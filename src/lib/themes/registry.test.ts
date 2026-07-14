@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_THEME_ID, themeList, themes } from './index';
+import { iconSets } from '$lib/icons';
 
 describe('theme registry', () => {
   it('contains the three built-in themes', () => {
@@ -42,6 +43,32 @@ describe('theme registry', () => {
     const reference = Object.keys(themeList[0].tokens).sort();
     for (const theme of themeList) {
       expect(Object.keys(theme.tokens).sort()).toEqual(reference);
+    }
+  });
+
+  it('declares a valid widget style', () => {
+    for (const theme of themeList) {
+      expect(['glass', 'flat'], theme.id).toContain(theme.style);
+    }
+  });
+
+  it('keeps the HIG themes fully flat', () => {
+    for (const id of ['breeze', 'libadwaita'] as const) {
+      const theme = themes[id];
+      expect(theme.style, id).toBe('flat');
+      expect(theme.tokens['backdrop-blur'], id).toBe('none');
+      expect(theme.tokens['glass-inset'], id).toBe('none');
+      expect(theme.tokens['mesh-gradient'], id).toBe('none');
+      expect(theme.tokens['shadow-card'], id).toBe('none');
+    }
+    expect(themes.cosmic.style).toBe('glass');
+  });
+
+  it('references a registered icon set when icons is declared', () => {
+    for (const theme of themeList) {
+      if (theme.icons) {
+        expect(Object.keys(iconSets), theme.id).toContain(theme.icons);
+      }
     }
   });
 });

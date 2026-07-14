@@ -1,13 +1,35 @@
 # Themes
 
 Twister's look is driven by a small theme engine. Each theme is a flat
-map of design-token **primitives** (colors, radii, glass, mesh
-background). At runtime the theme store writes every token as an inline
-CSS custom property on `<html>` (`--color-primary`, `--radius-md`, …),
-which overrides the fallback values compiled from `src/app.css`. All
-derived values — alpha washes, accent gradients, hover tints — are
-computed in `app.css` with `color-mix()`, so a theme never has to
-restate them.
+map of design-token **primitives** (colors, radii, widget surfaces,
+glass, mesh background) plus metadata: a widget `style`
+(`'glass' | 'flat'`, mirrored to a `data-style` attribute on `<html>`
+that CSS uses to gate glass-only decoration like blurs, glows, orbs,
+and hover lifts) and an optional `icons` set id (see
+`src/lib/icons/`). At runtime the theme store writes every token as an
+inline CSS custom property on `<html>` (`--color-primary`,
+`--radius-md`, …), which overrides the fallback values compiled from
+`src/app.css`. Derived values — alpha washes, accent gradients, hover
+tints — are computed in `app.css` with `color-mix()`, so a theme never
+has to restate them.
+
+The built-in Breeze and Libadwaita themes are grounded in their
+desktops' human interface guidelines, with palette and metrics taken
+from the upstream sources of truth:
+
+- **Breeze** (Kirigami HIG): [`KDE/breeze`](https://github.com/KDE/breeze)
+  `BreezeDark.colors` + `breezemetrics.h` — flat opaque surfaces, 5px
+  frame radius, solid `#3daee9` selection with white text, buttons that
+  show the accent outline on hover (DecorationHover), Breeze symbolic
+  icons.
+- **Libadwaita** (GNOME HIG):
+  [`GNOME/libadwaita`](https://github.com/GNOME/libadwaita) stylesheet —
+  window `#222226` / view `#1d1d20` / headerbar `#2e2e32`, `white/8%`
+  cards at 12px, borderless bold 9px buttons filled with a
+  `currentColor` wash (10% rest / 15% hover / 30% pressed), Adwaita
+  symbolic icons, zero translucency or shadows.
+- **Cosmic** keeps the original glassmorphic showcase styling
+  (`style: 'glass'`) with COSMIC symbolic icons.
 
 ## Selection
 
@@ -57,8 +79,16 @@ the theme's stock accent is used silently. Helpers live in
 | `color-base-content` | Default text color (DaisyUI) |
 | `color-info/success/warning/error` | Status colors (DaisyUI) |
 | `radius-xs/sm/md/lg/full` | Corner radius scale used across components |
+| `radius-button` | Button corner radius (Breeze 5px, Adwaita 9px, glass pill) |
 | `surface-base` | Opaque window background |
-| `surface-picker` | Frosted input-field background |
+| `surface-picker` | Input-field background (opaque on flat themes) |
+| `surface-card` | Card/panel background — full value, gradient allowed |
+| `border-card` | Card border color (`transparent` for Adwaita) |
+| `shadow-card` | Card `box-shadow` — full value, or `none` for flat HIGs |
+| `button-bg` / `button-bg-hover` | Button fill at rest / hover |
+| `button-border` / `button-border-hover` | Button border colors (Breeze hover = accent) |
+| `selection-bg` / `selection-fg` | Selected rows & active pills (Breeze solid accent + white) |
+| `font-ui` | UI font stack per HIG (Noto Sans / Adwaita Sans / Inter) |
 | `backdrop-blur` | `backdrop-filter` value for glass panels, or `none` for flat |
 | `glass-inset` | Inset highlight `box-shadow` for glass panels, or `none` |
 | `mesh-gradient` | Full `background` value for the animated `.app-root::before` texture, or `none` |

@@ -14,6 +14,7 @@
     import { keyboardStore } from "$lib/stores/keyboard.svelte";
     import { DUR, duration, easeOut } from "$lib/motion";
     import Icon from "$lib/components/Icon.svelte";
+    import type { IconName } from "$lib/icons";
     import auraLogo from "$lib/assets/aura-logo.svg";
 
     interface Props {
@@ -57,7 +58,7 @@
             : { label: "Back to devices", act: () => onNavigate("devices") },
     );
 
-    const bottomNav: { id: View; label: string; icon: string }[] = [
+    const bottomNav: { id: View; label: string; icon: IconName }[] = [
         { id: "donate", label: "Support", icon: "heart" },
         { id: "about", label: "About", icon: "info" },
     ];
@@ -135,10 +136,10 @@
             <!-- Ambient floating orbs, inherited from the old splash -->
             <div class="absolute inset-0 z-0 pointer-events-none overflow-hidden" aria-hidden="true">
                 <div
-                    class="absolute left-1/4 top-1/4 w-[450px] h-[450px] rounded-full bg-primary/10 blur-[130px] animate-orb-drift origin-center"
+                    class="intro-orb absolute left-1/4 top-1/4 w-[450px] h-[450px] rounded-full bg-primary/10 blur-[130px] animate-orb-drift origin-center"
                 ></div>
                 <div
-                    class="absolute right-1/4 bottom-1/4 w-[380px] h-[380px] rounded-full bg-secondary/8 blur-[130px] animate-orb-float origin-center"
+                    class="intro-orb absolute right-1/4 bottom-1/4 w-[380px] h-[380px] rounded-full bg-secondary/8 blur-[130px] animate-orb-float origin-center"
                 ></div>
             </div>
 
@@ -150,10 +151,10 @@
                 <img
                     src={auraLogo}
                     alt=""
-                    class="w-14 h-14 drop-shadow-[0_0_12px_rgba(114,137,218,0.2)] animate-logo-float"
+                    class="intro-logo w-14 h-14 drop-shadow-[0_0_12px_rgba(114,137,218,0.2)] animate-logo-float"
                 />
                 <h1
-                    class="text-2xl font-light tracking-[0.4em] bg-gradient-to-r from-base-content via-base-content/90 to-base-content/50 bg-clip-text text-transparent"
+                    class="intro-wordmark text-2xl font-light tracking-[0.4em] bg-gradient-to-r from-base-content via-base-content/90 to-base-content/50 bg-clip-text text-transparent"
                     style="font-family: var(--font-display); text-shadow: 0 0 30px rgba(255,255,255,0.05);"
                 >
                     TWISTER
@@ -183,7 +184,7 @@
                             aria-hidden="true"
                         >
                             <div
-                                class="absolute inset-0 rounded-full bg-primary/5 blur-md group-hover:bg-primary/15 transition-colors"
+                                class="kind-halo absolute inset-0 rounded-full bg-primary/5 blur-md group-hover:bg-primary/15 transition-colors"
                                 style="transition-duration: var(--dur-base);"
                             ></div>
                             <div class="absolute inset-1 rounded-full border border-white/5"></div>
@@ -430,6 +431,40 @@
     }
     .kind-card:active {
         transform: translateY(-1px) scale(0.99);
+    }
+
+    /* Flat HIG themes: no orbs/halos/glow, static solid cards, plain
+       wordmark — the chooser reads like a native dialog. */
+    :global([data-style="flat"]) .intro-orb,
+    :global([data-style="flat"]) .kind-halo {
+        display: none;
+    }
+    :global([data-style="flat"]) .intro-logo {
+        filter: none;
+        animation: none;
+    }
+    :global([data-style="flat"]) .intro-wordmark {
+        background-image: none;
+        -webkit-text-fill-color: var(--color-base-content);
+        color: var(--color-base-content);
+        text-shadow: none !important;
+    }
+    :global([data-style="flat"]) .kind-card {
+        background: var(--surface-card);
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        border-color: var(--border-card);
+        border-radius: var(--radius-lg);
+        box-shadow: none;
+    }
+    :global([data-style="flat"]) .kind-card:hover,
+    :global([data-style="flat"]) .kind-card:focus-visible {
+        transform: none;
+        border-color: var(--color-primary);
+        box-shadow: none;
+    }
+    :global([data-style="flat"]) .kind-card:active {
+        transform: none;
     }
 
     /* Ambient intro motion, inherited from the retired splash screen.

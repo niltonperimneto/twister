@@ -8,6 +8,8 @@ export const cosmic: Theme = {
   name: 'Cosmic',
   description: 'COSMIC teal on near-black, very round corners, subtle glass',
   appearance: 'dark',
+  style: 'glass',
+  icons: 'cosmic',
   tokens: {
     'color-primary': 'oklch(0.78 0.09 210)' /* COSMIC light cyan accent */,
     'color-primary-content': 'oklch(0.2 0.03 210)',
@@ -27,9 +29,30 @@ export const cosmic: Theme = {
     'radius-md': '16px',
     'radius-lg': '20px',
     'radius-full': '9999px',
+    'radius-button': '9999px',
 
     'surface-base': 'oklch(0.16 0.006 260)',
     'surface-picker': 'oklch(0.2 0.006 260 / 0.5)',
+
+    'surface-card':
+      'linear-gradient(to bottom, color-mix(in oklab, var(--color-base-content) 11%, transparent), color-mix(in oklab, var(--color-base-content) 6%, transparent))',
+    'border-card': 'oklch(0.4 0 0 / 0.18)',
+    'shadow-card':
+      'var(--glass-inset), 0 4px 16px oklch(0 0 0 / 0.25), 0 1px 3px oklch(0 0 0 / 0.15)',
+
+    'button-bg':
+      'linear-gradient(to bottom, color-mix(in oklab, var(--color-base-content) 13%, transparent), color-mix(in oklab, var(--color-base-content) 8%, transparent))',
+    'button-bg-hover':
+      'color-mix(in oklab, var(--color-base-content) 14%, transparent)',
+    'button-border': 'oklch(0.45 0 0 / 0.25)',
+    'button-border-hover': 'oklch(0.55 0 0 / 0.4)',
+
+    'selection-bg':
+      'linear-gradient(to bottom, color-mix(in oklab, var(--color-primary) 25%, transparent), color-mix(in oklab, var(--color-primary) 15%, transparent))',
+    'selection-fg':
+      'color-mix(in oklab, var(--color-primary) 25%, var(--color-base-content))',
+
+    'font-ui': "'Inter', system-ui, sans-serif",
 
     'backdrop-blur': 'blur(12px) saturate(1.2)',
     'glass-inset': 'inset 0 1px 0 0 oklch(1 0 0 / 0.06)',

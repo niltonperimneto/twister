@@ -7,6 +7,8 @@
  * the accent) are computed in app.css with color-mix(), so themes
  * only declare primitives. */
 
+import type { IconSetId } from '$lib/icons/types';
+
 export type ThemeId = string;
 
 /** Persisted user choice: an explicit theme id, or "system" to
@@ -34,10 +36,34 @@ export interface ThemeTokens {
   'radius-md': string;
   'radius-lg': string;
   'radius-full': string;
+  /* Button corner radius — HIG-specific (Breeze 5px, Adwaita 9px,
+   * glass themes pill) */
+  'radius-button': string;
 
   /* Opaque window surfaces */
   'surface-base': string;
   'surface-picker': string;
+
+  /* Cards / panels — full background value (gradient allowed), border
+   * color, and full box-shadow value ("none" for flat HIGs) */
+  'surface-card': string;
+  'border-card': string;
+  'shadow-card': string;
+
+  /* Buttons — background (full value), border colors at rest and on
+   * hover (Breeze shows its accent outline on hover) */
+  'button-bg': string;
+  'button-bg-hover': string;
+  'button-border': string;
+  'button-border-hover': string;
+
+  /* Selected rows / active pills — Breeze solid accent + white text,
+   * Adwaita neutral currentColor wash, glass themes gradient */
+  'selection-bg': string;
+  'selection-fg': string;
+
+  /* UI font stack per HIG (Noto Sans / Adwaita Sans / Inter) */
+  'font-ui': string;
 
   /* Glass compositing — "none" for both yields a flat theme */
   'backdrop-blur': string;
@@ -56,5 +82,10 @@ export interface Theme {
   description: string;
   /** Only dark palettes are supported today. */
   appearance: 'dark';
+  /** Widget rendering style — flat HIG-faithful vs glassmorphic.
+   *  Mirrored to a `data-style` attribute on <html> for CSS gating. */
+  style: 'glass' | 'flat';
+  /** Symbolic icon set matching the desktop; absent → built-in default. */
+  icons?: IconSetId;
   tokens: ThemeTokens;
 }

@@ -142,6 +142,16 @@
         border-color: color-mix(in oklab, var(--color-primary) 35%, transparent);
         background: color-mix(in oklab, var(--color-primary) 35%, var(--color-base-300));
     }
+
+    /* Flat HIG themes: plain Adwaita/Breeze-style key buttons */
+    :global([data-style="flat"]) .kc-btn {
+        background: var(--button-bg);
+        box-shadow: none;
+    }
+    :global([data-style="flat"]) .kc-btn:hover {
+        background: var(--button-bg-hover);
+        border-color: var(--button-border-hover);
+    }
     .kc-btn:active {
         transform: scale(0.95);
     }

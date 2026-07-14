@@ -64,6 +64,35 @@
     --dur-base: 250ms;
     --dur-slow: 400ms;
     --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+    /* ---- Widget tokens (pre-init fallbacks = glass look; themes
+       override all of these inline) ---- */
+    --radius-button: 9999px;
+    --surface-card: linear-gradient(
+        to bottom,
+        color-mix(in oklab, var(--color-base-content) 11%, transparent),
+        color-mix(in oklab, var(--color-base-content) 6%, transparent)
+    );
+    --border-card: oklch(0.4 0 0 / 0.18);
+    --shadow-card:
+        var(--glass-inset),
+        0 4px 16px oklch(0 0 0 / 0.25),
+        0 1px 3px oklch(0 0 0 / 0.15);
+    --button-bg: linear-gradient(
+        to bottom,
+        color-mix(in oklab, var(--color-base-content) 13%, transparent),
+        color-mix(in oklab, var(--color-base-content) 8%, transparent)
+    );
+    --button-bg-hover: color-mix(in oklab, var(--color-base-content) 14%, transparent);
+    --button-border: oklch(0.45 0 0 / 0.25);
+    --button-border-hover: oklch(0.55 0 0 / 0.4);
+    --selection-bg: linear-gradient(
+        to bottom,
+        color-mix(in oklab, var(--color-primary) 25%, transparent),
+        color-mix(in oklab, var(--color-primary) 15%, transparent)
+    );
+    --selection-fg: color-mix(in oklab, var(--color-primary) 25%, var(--color-base-content));
+    --font-ui: var(--font-sans);
 }
 
 html,
@@ -75,7 +104,7 @@ body,
     height: 100%;
     overflow: hidden;
     background: transparent;
-    font-family: var(--font-sans);
+    font-family: var(--font-ui, var(--font-sans));
     color: oklch(0.92 0 0);
     user-select: none;
     -webkit-user-select: none;
@@ -198,15 +227,16 @@ code, kbd, samp, pre {
 }
 
 /* Symbolic icons inside sidebar rows: bright enough to read at a glance,
-   full primary tint on hover/active */
+   full primary tint on hover/active. Tint via `color` so both stroke-
+   and fill-based (symbolic) icon sets follow along via currentColor. */
 .sidebar-item svg {
-    stroke: oklch(0.85 0 0);
+    color: oklch(0.85 0 0);
     opacity: 0.9;
-    transition: stroke 200ms cubic-bezier(0.16, 1, 0.3, 1), opacity 200ms;
+    transition: color 200ms cubic-bezier(0.16, 1, 0.3, 1), opacity 200ms;
 }
 
 .sidebar-item:hover svg {
-    stroke: var(--color-primary);
+    color: var(--color-primary);
     opacity: 1;
 }
 
@@ -245,6 +275,11 @@ code, kbd, samp, pre {
 }
 
 .sidebar-item-active {
+    background: var(--selection-bg);
+    color: var(--selection-fg);
+}
+
+[data-style="glass"] .sidebar-item-active {
     background: linear-gradient(
         to right,
         color-mix(in oklab, var(--color-primary) 28%, transparent),
@@ -256,9 +291,15 @@ code, kbd, samp, pre {
         inset 3px 0 8px -2px color-mix(in oklab, var(--color-primary) 25%, transparent);
 }
 
+/* Selected-row icon follows the selection text color (crucial for
+   Breeze's solid-accent selection); glass keeps the primary tint. */
 .sidebar-item-active svg {
-    stroke: var(--color-primary);
+    color: inherit;
     opacity: 1;
+}
+
+[data-style="glass"] .sidebar-item-active svg {
+    color: var(--color-primary);
 }
 
 /* ------------------------------------------------------------------ */
@@ -266,15 +307,10 @@ code, kbd, samp, pre {
 /* ------------------------------------------------------------------ */
 
 .editor-card {
-    background: linear-gradient(
-        to bottom,
-        color-mix(in oklab, var(--color-base-content) 11%, transparent),
-        color-mix(in oklab, var(--color-base-content) 6%, transparent)
-    );
+    background: var(--surface-card);
     backdrop-filter: var(--backdrop-blur);
     -webkit-backdrop-filter: var(--backdrop-blur);
-    border: 1px solid oklch(0.4 0 0 / 0.18);
-    border-top-color: oklch(0.5 0 0 / 0.25);
+    border: 1px solid var(--border-card);
     border-radius: var(--radius-lg);
     padding: 1.25rem;
     display: flex;
@@ -284,13 +320,15 @@ code, kbd, samp, pre {
         border-color 200ms ease,
         box-shadow 200ms ease,
         transform 200ms ease;
-    box-shadow:
-        var(--glass-inset),
-        0 4px 16px oklch(0 0 0 / 0.25),
-        0 1px 3px oklch(0 0 0 / 0.15);
+    box-shadow: var(--shadow-card);
 }
 
-.editor-card:hover {
+/* Glass extras: brighter top edge and a hover lift (flat HIG cards are static) */
+[data-style="glass"] .editor-card {
+    border-top-color: oklch(0.5 0 0 / 0.25);
+}
+
+[data-style="glass"] .editor-card:hover {
     border-color: oklch(0.5 0 0 / 0.25);
     border-top-color: oklch(0.6 0 0 / 0.3);
     box-shadow:
@@ -323,7 +361,7 @@ code, kbd, samp, pre {
     gap: 0.375rem;
     padding: 0.25rem 0.625rem;
     font-size: 0.75rem;
-    border-radius: var(--radius-full);
+    border-radius: var(--radius-button);
     border: 1px solid oklch(0.4 0 0 / 0.3);
     background: transparent;
     color: oklch(0.7 0 0);
@@ -342,13 +380,16 @@ code, kbd, samp, pre {
 
 .pill-btn-active {
     border-color: var(--color-primary);
-    background: linear-gradient(
-        to bottom,
-        color-mix(in oklab, var(--color-primary) 25%, transparent),
-        color-mix(in oklab, var(--color-primary) 15%, transparent)
-    );
-    color: color-mix(in oklab, var(--color-primary) 25%, var(--color-base-content));
+    background: var(--selection-bg);
+    color: var(--selection-fg);
+}
+
+[data-style="glass"] .pill-btn-active {
     box-shadow: inset 0 1px 0 0 oklch(1 0 0 / 0.1);
+}
+
+[data-style="flat"] .pill-btn-active {
+    border-color: transparent;
 }
 
 /* ------------------------------------------------------------------ */
@@ -373,30 +414,20 @@ code, kbd, samp, pre {
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    border-radius: var(--radius-full);
-    border: 1px solid oklch(0.45 0 0 / 0.25);
-    background: linear-gradient(
-        to bottom,
-        color-mix(in oklab, var(--color-base-content) 13%, transparent),
-        color-mix(in oklab, var(--color-base-content) 8%, transparent)
-    );
-    backdrop-filter: blur(12px) saturate(1.3);
-    -webkit-backdrop-filter: blur(12px) saturate(1.3);
+    border-radius: var(--radius-button);
+    border: 1px solid var(--button-border);
+    background: var(--button-bg);
+    backdrop-filter: var(--backdrop-blur);
+    -webkit-backdrop-filter: var(--backdrop-blur);
     color: oklch(0.85 0 0);
     font-weight: 500;
     transition: all 200ms cubic-bezier(0.16, 1, 0.3, 1);
-    box-shadow:
-        inset 0 1px 0 0 oklch(1 0 0 / 0.08),
-        0 2px 8px oklch(0 0 0 / 0.2);
+    box-shadow: none;
 }
 
 .btn:hover {
-    border-color: oklch(0.55 0 0 / 0.4);
-    background: color-mix(in oklab, var(--color-base-content) 14%, transparent);
-    transform: translateY(-1px);
-    box-shadow:
-        var(--glass-inset),
-        0 4px 16px oklch(0 0 0 / 0.25);
+    border-color: var(--button-border-hover);
+    background: var(--button-bg-hover);
 }
 
 .btn:active {
@@ -404,7 +435,32 @@ code, kbd, samp, pre {
     box-shadow: none;
 }
 
+/* Glass extras: inset highlight, drop shadow, hover lift */
+[data-style="glass"] .btn {
+    box-shadow:
+        inset 0 1px 0 0 oklch(1 0 0 / 0.08),
+        0 2px 8px oklch(0 0 0 / 0.2);
+}
+
+[data-style="glass"] .btn:hover {
+    transform: translateY(-1px);
+    box-shadow:
+        var(--glass-inset),
+        0 4px 16px oklch(0 0 0 / 0.25);
+}
+
 .btn-primary {
+    border-color: transparent;
+    background: var(--color-primary);
+    color: var(--color-primary-content);
+}
+
+.btn-primary:hover {
+    border-color: transparent;
+    background: color-mix(in oklab, var(--color-primary) 88%, white);
+}
+
+[data-style="glass"] .btn-primary {
     border-color: color-mix(in oklab, var(--color-primary) 30%, transparent);
     background: linear-gradient(
         to bottom,
@@ -414,7 +470,7 @@ code, kbd, samp, pre {
     color: color-mix(in oklab, var(--color-primary) 30%, var(--color-base-content));
 }
 
-.btn-primary:hover {
+[data-style="glass"] .btn-primary:hover {
     border-color: color-mix(in oklab, var(--color-primary) 50%, transparent);
     background: linear-gradient(
         to bottom,
@@ -587,26 +643,22 @@ code, kbd, samp, pre {
 
 .led-zone {
     border-radius: var(--radius-lg);
-    border: 1px solid oklch(0.4 0 0 / 0.18);
-    border-top-color: oklch(0.5 0 0 / 0.22);
-    background: linear-gradient(
-        to bottom,
-        color-mix(in oklab, var(--color-base-content) 9%, transparent),
-        color-mix(in oklab, var(--color-base-content) 4%, transparent)
-    );
+    border: 1px solid var(--border-card);
+    background: var(--surface-card);
     backdrop-filter: var(--backdrop-blur);
     -webkit-backdrop-filter: var(--backdrop-blur);
     transition:
         border-color 200ms ease,
         box-shadow 200ms ease;
     overflow: hidden;
-    box-shadow:
-        var(--glass-inset),
-        0 3px 12px oklch(0 0 0 / 0.2),
-        0 1px 2px oklch(0 0 0 / 0.1);
+    box-shadow: var(--shadow-card);
 }
 
-.led-zone:hover {
+[data-style="glass"] .led-zone {
+    border-top-color: oklch(0.5 0 0 / 0.22);
+}
+
+[data-style="glass"] .led-zone:hover {
     border-color: oklch(0.5 0 0 / 0.25);
     border-top-color: oklch(0.55 0 0 / 0.28);
 }
@@ -677,24 +729,20 @@ code, kbd, samp, pre {
 
 .macro-recorder {
     border-radius: var(--radius-lg);
-    border: 1px solid oklch(0.4 0 0 / 0.2);
-    border-top-color: oklch(0.5 0 0 / 0.25);
-    background: linear-gradient(
-        to bottom,
-        color-mix(in oklab, var(--color-base-content) 8%, transparent),
-        color-mix(in oklab, var(--color-base-content) 3%, transparent)
-    );
-    backdrop-filter: blur(16px) saturate(1.3);
-    -webkit-backdrop-filter: blur(16px) saturate(1.3);
+    border: 1px solid var(--border-card);
+    background: var(--surface-card);
+    backdrop-filter: var(--backdrop-blur);
+    -webkit-backdrop-filter: var(--backdrop-blur);
     padding: 0.75rem;
-    box-shadow:
-        var(--glass-inset),
-        0 4px 20px oklch(0 0 0 / 0.2),
-        0 1px 3px oklch(0 0 0 / 0.12);
+    box-shadow: var(--shadow-card);
     transition: border-color 200ms ease;
 }
 
-.macro-recorder:hover {
+[data-style="glass"] .macro-recorder {
+    border-top-color: oklch(0.5 0 0 / 0.25);
+}
+
+[data-style="glass"] .macro-recorder:hover {
     border-color: oklch(0.55 0 0 / 0.3);
     border-top-color: oklch(0.6 0 0 / 0.32);
 }
@@ -725,4 +773,78 @@ code, kbd, samp, pre {
 .macro-entry:hover {
     background: color-mix(in oklab, var(--color-base-content) 13%, transparent);
     border-color: oklch(0.5 0 0 / 0.3);
+}
+
+/* ------------------------------------------------------------------ */
+/* Flat HIG themes (data-style="flat": Breeze, Libadwaita)             */
+/* ------------------------------------------------------------------ */
+
+/* Flat widgets never lift on hover */
+[data-style="flat"] .btn:hover,
+[data-style="flat"] .editor-card:hover {
+    transform: none;
+}
+
+/* No inset rings on chips/home button — flat solid tints only */
+[data-style="flat"] .icon-chip,
+[data-style="flat"] .sidebar-home {
+    box-shadow: none;
+}
+
+/* Decorative glows/halos disappear on flat HIG themes */
+[data-style="flat"] .ambient-glow,
+[data-style="flat"] .logo-halo,
+[data-style="flat"] .heart-halo {
+    display: none;
+}
+
+[data-style="flat"] .toast-alert {
+    box-shadow: none;
+}
+
+/* Sliders: flat solid trough, plain solid accent thumb, no glow.
+   :where() keeps specificity at zero so LedEditor's functional
+   hue/saturation/lightness gradient tracks still win. */
+[data-style="flat"] :where(.slider) {
+    --slider-track: oklch(1 0 0 / 0.14);
+    --slider-thumb: var(--color-primary);
+    --slider-thumb-border: transparent;
+    --slider-thumb-glow: transparent;
+}
+
+[data-style="flat"] .slider::-webkit-slider-runnable-track {
+    box-shadow: none;
+}
+
+[data-style="flat"] .slider::-moz-range-track {
+    box-shadow: none;
+}
+
+[data-style="flat"] .slider::-webkit-slider-thumb {
+    box-shadow: none;
+}
+
+[data-style="flat"] .slider::-moz-range-thumb {
+    box-shadow: none;
+}
+
+/* ------------------------------------------------------------------ */
+/* Per-HIG details                                                     */
+/* ------------------------------------------------------------------ */
+
+/* GNOME HIG: bold button labels, pressed = currentColor 30% */
+[data-theme="libadwaita"] .btn,
+[data-theme="libadwaita"] .pill-btn {
+    font-weight: 700;
+}
+
+[data-theme="libadwaita"] .btn:active {
+    background: color-mix(in srgb, currentColor 30%, transparent);
+    transform: none;
+}
+
+/* Kirigami HIG: Breeze focus is a thin accent outline hugging the frame */
+[data-theme="breeze"] :focus-visible {
+    outline: 1px solid var(--color-primary);
+    outline-offset: 0;
 }

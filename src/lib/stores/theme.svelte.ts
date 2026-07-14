@@ -110,6 +110,7 @@ class ThemeStore {
       root.style.setProperty(`--${key}`, value);
     }
     root.setAttribute('data-theme', theme.id);
+    root.setAttribute('data-style', theme.style);
     this.resolvedId = theme.id;
     /* Accent override last, so it wins over the stock tokens. Because
      * the loop above rewrites every token, re-running this method is

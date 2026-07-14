@@ -13,6 +13,7 @@
     import Titlebar from "$lib/components/Titlebar.svelte";
     import Sidebar from "$lib/components/Sidebar.svelte";
     import Icon from "$lib/components/Icon.svelte";
+    import type { IconName } from "$lib/icons";
     import MouseVisualizer from "$lib/components/MouseVisualizer.svelte";
     import DpiEditor from "$lib/components/DpiEditor.svelte";
     import ButtonMapper from "$lib/components/ButtonMapper.svelte";
@@ -86,7 +87,7 @@
         return `rgb(${r},${g},${b})`;
     });
 
-    const allTabs: { id: Tab; label: string; icon: string }[] = [
+    const allTabs: { id: Tab; label: string; icon: IconName }[] = [
         { id: "dpi", label: "DPI", icon: "chevrons-right" },
         { id: "buttons", label: "Buttons", icon: "mouse" },
         { id: "leds", label: "Lighting", icon: "sun" },
@@ -543,7 +544,7 @@
     <!-- Ambient glow overlay — rendered last so it bleeds over all UI elements -->
     {#if ambientGlow}
         <div
-            class="pointer-events-none absolute inset-2 z-40 rounded-lg"
+            class="ambient-glow pointer-events-none absolute inset-2 z-40 rounded-lg"
             style="
                 background: radial-gradient(ellipse 80% 70% at 50% 50%, {ambientGlow}, transparent 70%);
                 opacity: 0.15;
@@ -563,7 +564,7 @@
             {#each getToasts() as toast (toast.id)}
                 <div
                     transition:fade={{ duration: duration(DUR.fast) }}
-                    class="alert {toast.kind === 'error'
+                    class="toast-alert alert {toast.kind === 'error'
                         ? 'alert-error'
                         : 'alert-info'} text-xs py-2 px-3 shadow-lg"
                 >
