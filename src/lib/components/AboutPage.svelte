@@ -92,7 +92,7 @@
                     <input type="checkbox" id="updates-collapse-toggle" class="peer" checked={updater.hasUpdate} />
                     <div class="collapse-title text-[11px] font-semibold py-2.5 px-4 flex items-center justify-between gap-2">
                         <div class="flex items-center gap-2">
-                            <Icon name="refresh" class="w-3.5 h-3.5 text-primary/70" />
+                            <Icon name="refresh" class="w-3.5 h-3.5 text-base-content/60" />
                             Updates
                         </div>
                         {#if updater.hasUpdate}
@@ -186,7 +186,7 @@
                 <div class="collapse collapse-arrow bg-base-300/35 border border-base-content/5 rounded-lg text-left">
                     <input type="checkbox" id="preferences-collapse-toggle" class="peer" checked />
                     <div class="collapse-title text-[11px] font-semibold py-2.5 px-4 flex items-center gap-2">
-                        <Icon name="settings" class="w-3.5 h-3.5 text-accent/70" />
+                        <Icon name="settings" class="w-3.5 h-3.5 text-base-content/60" />
                         App Preferences
                     </div>
                     <div class="collapse-content px-4 pb-3 flex flex-col gap-2">
@@ -237,7 +237,7 @@
                 <div class="collapse collapse-arrow bg-base-300/35 border border-base-content/5 rounded-lg text-left">
                     <input type="checkbox" id="credits-collapse-toggle" class="peer" />
                     <div class="collapse-title text-[11px] font-semibold py-2.5 px-4 flex items-center gap-2">
-                        <Icon name="users" class="w-3.5 h-3.5 text-primary/70" />
+                        <Icon name="users" class="w-3.5 h-3.5 text-base-content/60" />
                         Credits & Core Projects
                     </div>
                     <div class="collapse-content px-4 pb-3">
@@ -259,7 +259,7 @@
                 <div class="collapse collapse-arrow bg-base-300/35 border border-base-content/5 rounded-lg text-left">
                     <input type="checkbox" id="license-collapse-toggle" class="peer" />
                     <div class="collapse-title text-[11px] font-semibold py-2.5 px-4 flex items-center gap-2">
-                        <Icon name="shield" class="w-3.5 h-3.5 text-secondary/70" />
+                        <Icon name="shield" class="w-3.5 h-3.5 text-base-content/60" />
                         Licensing & Legal
                     </div>
                     <div class="collapse-content px-4 pb-3 text-[10px] text-base-content/50 leading-relaxed flex flex-col gap-1.5">

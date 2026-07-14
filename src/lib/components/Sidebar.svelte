@@ -120,7 +120,9 @@
     class="{intro ? 'w-56' : collapsed ? 'w-14' : 'w-56'} shrink-0 relative overflow-hidden"
     style="
         flex-grow: {intro ? 1 : 0};
-        border-right: 1px solid {intro ? 'transparent' : 'oklch(1 0 0 / 0.06)'};
+        border-right: 1px solid {intro
+        ? 'transparent'
+        : 'color-mix(in oklab, var(--color-base-content) 6%, transparent)'};
         transition:
             flex-grow var(--dur-slow) var(--ease-out),
             width var(--dur-fast) var(--ease-out),
@@ -151,11 +153,11 @@
                 <img
                     src={auraLogo}
                     alt=""
-                    class="intro-logo w-14 h-14 drop-shadow-[0_0_12px_rgba(114,137,218,0.2)] animate-logo-float"
+                    class="intro-logo w-14 h-14 animate-logo-float"
                 />
                 <h1
                     class="intro-wordmark text-2xl font-light tracking-[0.4em] bg-gradient-to-r from-base-content via-base-content/90 to-base-content/50 bg-clip-text text-transparent"
-                    style="font-family: var(--font-display); text-shadow: 0 0 30px rgba(255,255,255,0.05);"
+                    style="font-family: var(--font-display); text-shadow: 0 0 30px color-mix(in oklab, var(--color-base-content) 6%, transparent);"
                 >
                     TWISTER
                 </h1>
@@ -239,7 +241,7 @@
                     <img
                         src={auraLogo}
                         alt=""
-                        class="w-5 h-5 shrink-0 drop-shadow-[0_0_6px_rgba(114,137,218,0.35)]"
+                        class="sidebar-logo w-5 h-5 shrink-0"
                     />
                     {#if !collapsed}
                         <span class="text-sm font-semibold flex-1 min-w-0 truncate"
@@ -410,11 +412,27 @@
         padding-right: 0;
     }
 
+    /* Logo glows track the theme accent instead of a fixed blue */
+    .intro-logo {
+        filter: drop-shadow(
+            0 0 12px color-mix(in oklab, var(--color-primary) 22%, transparent)
+        );
+    }
+    .sidebar-logo {
+        filter: drop-shadow(
+            0 0 6px color-mix(in oklab, var(--color-primary) 35%, transparent)
+        );
+    }
+    :global([data-style="flat"]) .sidebar-logo {
+        filter: none;
+    }
+
     /* Intro chooser cards — glassmorphic, lift on hover */
     .kind-card {
         box-shadow:
-            0 30px 70px -20px rgba(0, 0, 0, 0.45),
-            inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+            0 30px 70px -20px oklch(0 0 0 / 0.45),
+            inset 0 1px 0 0
+                color-mix(in oklab, var(--color-base-content) 5%, transparent);
         transition:
             transform var(--dur-base) var(--ease-out),
             border-color var(--dur-base) var(--ease-out),
@@ -425,8 +443,9 @@
         transform: translateY(-3px);
         border-color: color-mix(in oklab, var(--color-primary) 35%, transparent);
         box-shadow:
-            0 34px 80px -20px rgba(0, 0, 0, 0.55),
-            inset 0 1px 0 0 rgba(255, 255, 255, 0.08),
+            0 34px 80px -20px oklch(0 0 0 / 0.55),
+            inset 0 1px 0 0
+                color-mix(in oklab, var(--color-base-content) 8%, transparent),
             0 0 40px -8px color-mix(in oklab, var(--color-primary) 15%, transparent);
     }
     .kind-card:active {

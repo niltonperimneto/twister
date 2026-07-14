@@ -77,16 +77,16 @@
         border-radius: var(--radius-full);
         border: none;
         background: transparent;
-        color: oklch(0.82 0 0);
+        color: color-mix(in oklab, var(--color-base-content) 82%, transparent);
         cursor: pointer;
         transition: all 150ms ease;
     }
     .titlebar-btn:hover {
-        background: oklch(0.5 0 0 / 0.2);
-        color: oklch(0.95 0 0);
+        background: color-mix(in oklab, var(--color-base-content) 12%, transparent);
+        color: var(--color-base-content);
     }
     .titlebar-btn-close:hover {
-        background: oklch(0.65 0.25 25 / 0.25);
-        color: oklch(0.85 0.22 25);
+        background: color-mix(in oklab, var(--color-error) 25%, transparent);
+        color: color-mix(in oklab, var(--color-error) 75%, var(--color-base-content));
     }
 </style>
