@@ -3,14 +3,16 @@
  * so registering a theme here is the only wiring step. */
 
 import type { Theme, ThemeId } from './types';
+import { aurora } from './aurora';
 import { breeze } from './breeze';
 import { libadwaita } from './libadwaita';
 import { cosmic } from './cosmic';
 
-/** Neutral, flat fallback when the desktop environment is unknown. */
-export const DEFAULT_THEME_ID: ThemeId = 'libadwaita';
+/** The house theme — DE-agnostic fallback when the desktop is unknown. */
+export const DEFAULT_THEME_ID: ThemeId = 'aurora';
 
 export const themes: Readonly<Record<ThemeId, Theme>> = {
+  aurora,
   breeze,
   libadwaita,
   cosmic,

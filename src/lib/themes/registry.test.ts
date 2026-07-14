@@ -3,9 +3,9 @@ import { DEFAULT_THEME_ID, themeList, themes } from './index';
 import { iconSets } from '$lib/icons';
 
 describe('theme registry', () => {
-  it('contains the three built-in themes', () => {
+  it('contains the four built-in themes', () => {
     expect(Object.keys(themes)).toEqual(
-      expect.arrayContaining(['breeze', 'libadwaita', 'cosmic']),
+      expect.arrayContaining(['aurora', 'breeze', 'libadwaita', 'cosmic']),
     );
   });
 

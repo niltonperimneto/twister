@@ -28,8 +28,12 @@ from the upstream sources of truth:
   cards at 12px, borderless bold 9px buttons filled with a
   `currentColor` wash (10% rest / 15% hover / 30% pressed), Adwaita
   symbolic icons, zero translucency or shadows.
-- **Cosmic** keeps the original glassmorphic showcase styling
+- **Cosmic** keeps the glassmorphic showcase styling
   (`style: 'glass'`) with COSMIC symbolic icons.
+- **Aurora** is Twister's original house look — Dracula-blue
+  glassmorphism with the animated mesh background and the built-in
+  Lucide-style icons. It is `DEFAULT_THEME_ID`: the DE-agnostic
+  fallback when System (auto) can't recognize the desktop.
 
 ## Selection
 
