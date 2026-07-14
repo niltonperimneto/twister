@@ -6,6 +6,9 @@
     import auraLogo from "$lib/assets/aura-logo.svg";
     import { openUrl } from "$lib/ipc/commands";
     import { updaterStore } from "$lib/stores/updater.svelte";
+    import { themeStore } from "$lib/stores/theme.svelte";
+    import { themeList, themes } from "$lib/themes";
+    import Icon from "./Icon.svelte";
 
     const updater = updaterStore;
 
@@ -23,6 +26,14 @@
 
     let version: string = $state("");
     getVersion().then((v) => (version = v));
+
+    function handleThemeChange(e: Event) {
+        themeStore.setTheme((e.target as HTMLSelectElement).value);
+    }
+
+    function handleFollowAccentChange(e: Event) {
+        themeStore.setFollowSystemAccent((e.target as HTMLInputElement).checked);
+    }
 </script>
 
 <div
@@ -35,7 +46,7 @@
         <div class="editor-card w-full items-center text-center p-6 gap-5">
             <!-- Animated interactive logo -->
             <div class="relative group cursor-pointer">
-                <div class="absolute inset-0 rounded-full bg-primary/20 blur-xl opacity-60 group-hover:opacity-90 transition-opacity duration-500 animate-pulse"></div>
+                <div class="logo-halo absolute inset-0 rounded-full bg-primary/20 blur-xl opacity-60 group-hover:opacity-90 transition-opacity duration-500 animate-pulse"></div>
                 <img
                     src={auraLogo}
                     alt="Twister logo"
@@ -61,9 +72,7 @@
                 onclick={() => openUrl("https://github.com/niltonperimneto/libratbag-rs")}
                 class="btn btn-xs gap-1.5"
             >
-                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13v22"></path>
-                </svg>
+                <Icon name="github" class="w-3.5 h-3.5" />
                 GitHub Repository
             </button>
 
@@ -83,11 +92,7 @@
                     <input type="checkbox" id="updates-collapse-toggle" class="peer" checked={updater.hasUpdate} />
                     <div class="collapse-title text-[11px] font-semibold py-2.5 px-4 flex items-center justify-between gap-2">
                         <div class="flex items-center gap-2">
-                            <svg class="w-3.5 h-3.5 text-primary/70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="23 4 23 10 17 10"/>
-                                <polyline points="1 20 1 14 7 14"/>
-                                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-                            </svg>
+                            <Icon name="refresh" class="w-3.5 h-3.5 text-primary/70" />
                             Updates
                         </div>
                         {#if updater.hasUpdate}
@@ -177,11 +182,62 @@
                     </div>
                 </div>
 
+                <!-- Preferences Collapse -->
+                <div class="collapse collapse-arrow bg-base-300/35 border border-base-content/5 rounded-lg text-left">
+                    <input type="checkbox" id="preferences-collapse-toggle" class="peer" checked />
+                    <div class="collapse-title text-[11px] font-semibold py-2.5 px-4 flex items-center gap-2">
+                        <Icon name="settings" class="w-3.5 h-3.5 text-accent/70" />
+                        App Preferences
+                    </div>
+                    <div class="collapse-content px-4 pb-3 flex flex-col gap-2">
+                        <div class="flex items-center justify-between py-1 border-b border-base-content/5">
+                            <div class="flex flex-col">
+                                <span class="text-xs font-medium text-base-content/85">Theme</span>
+                                <span class="text-[9px] text-base-content/40">
+                                    {#if themeStore.selection === "system"}
+                                        Follows your desktop environment — detected: {themes[themeStore.resolvedId]?.name ?? themeStore.resolvedId}
+                                    {:else}
+                                        {themes[themeStore.resolvedId]?.description ?? ""}
+                                    {/if}
+                                </span>
+                            </div>
+                            <select
+                                class="select select-xs bg-base-300/50 border border-base-content/10 rounded-md cursor-pointer text-xs"
+                                value={themeStore.selection}
+                                onchange={handleThemeChange}
+                            >
+                                <option value="system">System (auto)</option>
+                                {#each themeList as theme (theme.id)}
+                                    <option value={theme.id}>{theme.name}</option>
+                                {/each}
+                            </select>
+                        </div>
+                        <div class="flex items-center justify-between py-1">
+                            <div class="flex flex-col">
+                                <span class="text-xs font-medium text-base-content/85">Follow system accent</span>
+                                <span class="text-[9px] text-base-content/40">
+                                    {#if themeStore.systemAccent}
+                                        Re-tints the theme with your desktop's accent color
+                                    {:else}
+                                        No system accent detected — using the theme's own accent
+                                    {/if}
+                                </span>
+                            </div>
+                            <input
+                                type="checkbox"
+                                class="toggle toggle-primary toggle-xs cursor-pointer"
+                                checked={themeStore.followSystemAccent}
+                                onchange={handleFollowAccentChange}
+                            />
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Credits Collapse -->
                 <div class="collapse collapse-arrow bg-base-300/35 border border-base-content/5 rounded-lg text-left">
                     <input type="checkbox" id="credits-collapse-toggle" class="peer" />
                     <div class="collapse-title text-[11px] font-semibold py-2.5 px-4 flex items-center gap-2">
-                        <svg class="w-3.5 h-3.5 text-primary/70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        <Icon name="users" class="w-3.5 h-3.5 text-primary/70" />
                         Credits & Core Projects
                     </div>
                     <div class="collapse-content px-4 pb-3">
@@ -203,7 +259,7 @@
                 <div class="collapse collapse-arrow bg-base-300/35 border border-base-content/5 rounded-lg text-left">
                     <input type="checkbox" id="license-collapse-toggle" class="peer" />
                     <div class="collapse-title text-[11px] font-semibold py-2.5 px-4 flex items-center gap-2">
-                        <svg class="w-3.5 h-3.5 text-secondary/70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        <Icon name="shield" class="w-3.5 h-3.5 text-secondary/70" />
                         Licensing & Legal
                     </div>
                     <div class="collapse-content px-4 pb-3 text-[10px] text-base-content/50 leading-relaxed flex flex-col gap-1.5">

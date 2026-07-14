@@ -32,7 +32,10 @@
 
 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 h-full min-h-[400px]">
     <!-- Left column: list of macros -->
-    <div class="md:col-span-1 border border-base-content/10 rounded-xl bg-base-300/30 backdrop-blur-md p-4 flex flex-col gap-3 min-h-0">
+    <div
+        class="md:col-span-1 border border-base-content/10 rounded-xl bg-base-300/30 p-4 flex flex-col gap-3 min-h-0"
+        style="backdrop-filter: var(--backdrop-blur); -webkit-backdrop-filter: var(--backdrop-blur);"
+    >
         <h3 class="text-sm font-bold opacity-80 uppercase tracking-wider px-1 flex items-center justify-between">
             <span>Macros</span>
             <span class="text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded-full font-semibold">16 Slots</span>
@@ -43,7 +46,7 @@
                 <button
                     type="button"
                     onclick={() => selectedMacroId = macro.id}
-                    class="flex items-center justify-between px-3 py-2.5 rounded-lg text-left transition-all duration-150 border {selectedMacroId === macro.id ? 'bg-primary/15 border-primary/30 text-primary font-medium shadow-md shadow-primary/5' : 'bg-transparent border-transparent hover:bg-base-content/5 hover:border-base-content/10'}"
+                    class="flex items-center justify-between px-3 py-2.5 rounded-lg text-left transition-all duration-150 border {selectedMacroId === macro.id ? 'bg-primary/15 border-primary/30 text-primary font-medium' : 'bg-transparent border-transparent hover:bg-base-content/5 hover:border-base-content/10'}"
                 >
                     <div class="flex items-center gap-2.5">
                         <div class="w-2 h-2 rounded-full {macro.content ? 'bg-primary' : 'bg-base-content/25'}"></div>
@@ -58,7 +61,10 @@
     </div>
 
     <!-- Right columns: macro editor -->
-    <div class="md:col-span-2 border border-base-content/10 rounded-xl bg-base-300/30 backdrop-blur-md p-6 flex flex-col gap-6 relative overflow-hidden">
+    <div
+        class="md:col-span-2 border border-base-content/10 rounded-xl bg-base-300/30 p-6 flex flex-col gap-6 relative overflow-hidden"
+        style="backdrop-filter: var(--backdrop-blur); -webkit-backdrop-filter: var(--backdrop-blur);"
+    >
         <!-- Backend Status Notice (Glassmorphic Banner) -->
         <div class="bg-warning/10 border border-warning/20 rounded-xl p-4 flex gap-3 text-warning-content/90">
             <Icon name="info" class="w-5 h-5 text-warning shrink-0 mt-0.5" />

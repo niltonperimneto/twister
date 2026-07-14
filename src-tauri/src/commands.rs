@@ -356,16 +356,12 @@ pub async fn commit_device(
 /* Desktop environment detection                                       */
 /* ------------------------------------------------------------------ */
 
-/// Returns `"glass"` when running on KDE Plasma (the only DE where
-/// webkitGTK backdrop-filter renders correctly), `"opaque"` otherwise.
+/// Raw `XDG_CURRENT_DESKTOP` value (e.g. "KDE", "ubuntu:GNOME",
+/// "COSMIC"); empty when unset. The theme mapping lives in the
+/// frontend where it is unit-testable.
 #[tauri::command]
-pub fn detect_surface_mode() -> String {
-    let desktop = std::env::var("XDG_CURRENT_DESKTOP").unwrap_or_default().to_ascii_lowercase();
-    if desktop.contains("kde") || desktop.contains("plasma") {
-        "glass".into()
-    } else {
-        "opaque".into()
-    }
+pub fn detect_desktop_environment() -> String {
+    std::env::var("XDG_CURRENT_DESKTOP").unwrap_or_default()
 }
 
 /* ================================================================== */

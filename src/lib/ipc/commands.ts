@@ -83,6 +83,23 @@ export async function commitDevice(path: string): Promise<number> {
 }
 
 /* ------------------------------------------------------------------ */
+/* Desktop environment detection                                       */
+/* ------------------------------------------------------------------ */
+
+export async function detectDesktopEnvironment(): Promise<string> {
+  return invoke<string>('detect_desktop_environment');
+}
+
+/** Current system accent as [r, g, b] doubles (0–1), or null when
+ *  unavailable. Also starts the backend watcher that re-emits portal
+ *  changes as `system:accent` events. */
+export async function watchSystemAccent(): Promise<
+  [number, number, number] | null
+> {
+  return invoke<[number, number, number] | null>('watch_system_accent');
+}
+
+/* ------------------------------------------------------------------ */
 /* Keyboards (clackd)                                                  */
 /* ------------------------------------------------------------------ */
 

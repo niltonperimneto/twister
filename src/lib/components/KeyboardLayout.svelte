@@ -86,8 +86,8 @@
                 height: {key.h * UNIT - GAP}px;
                 transform: rotate({key.r}deg);
                 transform-origin: {(key.rx - key.x) * UNIT}px {(key.ry - key.y) * UNIT}px;
-                --key-x: ${key.x};
-                --key-y: ${key.y};
+                --key-x: {key.x};
+                --key-y: {key.y};
             "
         >
             <span class="kbd-cap-label">{key.label}</span>
@@ -150,6 +150,37 @@
         opacity: 0;
     }
 
+    /* Flat HIG themes: solid case, no frosted glass or ambient bloom */
+    :global([data-style="flat"]) .keyboard-underglow {
+        display: none;
+    }
+    :global([data-style="flat"]) .keyboard-case {
+        background: var(--surface-card);
+        border-color: var(--border-card);
+        box-shadow: none;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+    }
+
+    /* Flat HIG themes: keycaps become plain solid buttons (Adwaita-wash
+       fills), the selected cap keeps its ring but loses the bloom, and
+       LED effects keep their colors while the decorative glow is toned
+       down — mirroring the mouse visualizer's flat LED handling. */
+    :global([data-style="flat"]) .kbd-cap {
+        background: color-mix(in oklab, var(--color-base-content) 10%, transparent);
+        box-shadow: none;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+    }
+    :global([data-style="flat"]) .kbd-cap:hover {
+        background: color-mix(in oklab, var(--color-base-content) 15%, transparent);
+        box-shadow: none;
+    }
+    :global([data-style="flat"]) .kbd-cap-selected {
+        background: color-mix(in oklab, var(--color-primary) 40%, var(--color-base-300)) !important;
+        box-shadow: 0 0 0 2px color-mix(in oklab, var(--color-primary) 70%, transparent) !important;
+    }
+
     .kbd-cap {
         position: absolute;
         display: flex;
@@ -196,12 +227,12 @@
         border-color: oklch(1 0 0 / 0.18);
     }
     .kbd-cap-selected {
-        background: oklch(0.35 0.08 248) !important;
-        color: oklch(0.95 0.02 248) !important;
-        border-color: oklch(0.74 0.16 248) !important;
+        background: color-mix(in oklab, var(--color-primary) 40%, var(--color-base-300)) !important;
+        color: color-mix(in oklab, var(--color-primary) 10%, white) !important;
+        border-color: var(--color-primary) !important;
         box-shadow:
-            0 0 0 2px oklch(0.74 0.16 248 / 0.7),
-            0 0 12px 0 oklch(0.74 0.16 248 / 0.5) !important;
+            0 0 0 2px color-mix(in oklab, var(--color-primary) 70%, transparent),
+            0 0 12px 0 color-mix(in oklab, var(--color-primary) 50%, transparent) !important;
         text-shadow: none !important;
         animation: none !important;
     }

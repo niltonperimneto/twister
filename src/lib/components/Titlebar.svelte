@@ -1,6 +1,7 @@
 <!-- CSD Titlebar — frameless window drag region (DaisyUI) -->
 <script lang="ts">
     import { getCurrentWindow } from "@tauri-apps/api/window";
+    import Icon from "./Icon.svelte";
 
     const appWindow = getCurrentWindow();
 
@@ -36,19 +37,7 @@
             class="titlebar-btn hover:text-primary"
             aria-label="Toggle sidebar"
         >
-            <svg
-                width="16"
-                height="16"
-                viewBox="0 0 16 16"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.5"
-                stroke-linecap="round"
-            >
-                <line x1="2" y1="4" x2="14" y2="4" />
-                <line x1="2" y1="8" x2="14" y2="8" />
-                <line x1="2" y1="12" x2="14" y2="12" />
-            </svg>
+            <Icon name="panel-left" class="w-4 h-4" />
         </button>
     </div>
 
@@ -59,47 +48,21 @@
             class="titlebar-btn hover:text-primary"
             aria-label="Minimize"
         >
-            <svg width="10" height="10" viewBox="0 0 12 12"
-                ><rect
-                    y="5"
-                    width="12"
-                    height="2"
-                    rx="1"
-                    fill="currentColor"
-                /></svg
-            >
+            <Icon name="minimize" class="w-2.5 h-2.5" />
         </button>
         <button
             onclick={toggleMaximize}
             class="titlebar-btn hover:text-primary"
             aria-label="Maximize"
         >
-            <svg width="10" height="10" viewBox="0 0 12 12"
-                ><rect
-                    x="1"
-                    y="1"
-                    width="10"
-                    height="10"
-                    rx="2"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.5"
-                /></svg
-            >
+            <Icon name="maximize" class="w-2.5 h-2.5" />
         </button>
         <button
             onclick={close}
             class="titlebar-btn titlebar-btn-close"
             aria-label="Close"
         >
-            <svg width="10" height="10" viewBox="0 0 12 12"
-                ><path
-                    d="M2 2l8 8M10 2l-8 8"
-                    stroke="currentColor"
-                    stroke-width="1.5"
-                    stroke-linecap="round"
-                /></svg
-            >
+            <Icon name="close" class="w-2.5 h-2.5" />
         </button>
     </div>
 </header>

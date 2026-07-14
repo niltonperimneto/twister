@@ -220,7 +220,7 @@ twister/
 │   │   │   └── DonatePage.svelte
 │   │   ├── stores/               # Svelte 5 rune-based reactive stores
 │   │   │   ├── device.svelte.ts  # Device tree, profile, mutation state
-│   │   │   ├── theme.svelte.ts   # Surface mode detection (glass / opaque)
+│   │   │   ├── theme.svelte.ts   # Theme engine (DE detection + user choice)
 │   │   │   └── toast.svelte.ts   # In-app notification queue
 │   │   ├── ipc/
 │   │   │   └── commands.ts       # Typed wrapper for Tauri IPC commands
@@ -292,6 +292,9 @@ cargo tauri build
 - Shared state in the Rust backend uses `Arc<RwLock<T>>`.
 - Svelte 5 runes (`$state`, `$effect`, `$props`) are used throughout the frontend.
 - CSS design tokens are defined in `:root` in `app.css` and consumed via `var()`.
+- The UI theme (Breeze, Libadwaita, or Cosmic) is auto-detected from the desktop
+  environment on first launch and user-selectable under About → App Preferences.
+  See `src/lib/themes/README.md` for the token reference and how to add a theme.
 
 ---
 

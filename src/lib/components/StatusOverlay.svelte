@@ -3,6 +3,7 @@
     import type { DaemonStatus } from "$lib/types";
     import { fade } from "svelte/transition";
     import { DUR, duration } from "$lib/motion";
+    import Icon from "./Icon.svelte";
 
     interface Props {
         status: DaemonStatus;
@@ -21,22 +22,12 @@
 {#if status.status === "disconnected" || error}
     <div
         transition:fade={{ duration: duration(DUR.fast) }}
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xl"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/70"
+        style="backdrop-filter: var(--backdrop-blur); -webkit-backdrop-filter: var(--backdrop-blur);"
     >
         <div class="editor-card max-w-xs w-full mx-4 text-center p-6! gap-4!">
             <div class="flex justify-center">
-                <svg
-                    class="w-10 h-10 text-error animate-pulse"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.5"
-                    stroke-linecap="round"
-                >
-                    <circle cx="12" cy="12" r="10" />
-                    <line x1="12" y1="8" x2="12" y2="12" />
-                    <line x1="12" y1="16" x2="12.01" y2="16" />
-                </svg>
+                <Icon name="alert-circle" class="w-10 h-10 text-error animate-pulse" />
             </div>
 
             <h2 class="text-sm font-semibold">

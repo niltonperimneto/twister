@@ -14,6 +14,7 @@
         setLedEffectDuration,
     } from "$lib/ipc/commands";
     import { addToast } from "$lib/stores/toast.svelte";
+    import Icon from "./Icon.svelte";
 
     interface Props {
         profile: ProfileDto;
@@ -282,12 +283,10 @@
                         {LED_MODES[led.mode] ?? `Mode ${led.mode}`}
                     </span>
                 </div>
-                <svg
+                <Icon
+                    name="chevron-down"
                     class="w-3.5 h-3.5 opacity-40 transition-transform duration-200 {isOpen ? 'rotate-180' : ''}"
-                    viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                    aria-hidden="true"
-                ><polyline points="6 9 12 15 18 9" /></svg>
+                />
             </button>
 
             {#if isOpen}

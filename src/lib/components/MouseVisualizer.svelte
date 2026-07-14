@@ -235,6 +235,7 @@
 
                 <!-- Top sheen -->
                 <ellipse
+                    class="mouse-sheen"
                     cx="280" cy="60" rx="150" ry="90"
                     fill="url(#mv-sheen)"
                     pointer-events="none"
@@ -464,6 +465,36 @@
         filter: drop-shadow(0 18px 26px oklch(0 0 0 / 0.45));
     }
 
+    /* Flat HIG themes: functional preview keeps its colors, loses the
+       ambient bloom and floating-chassis shadow */
+    :global([data-style="flat"]) .mouse-underglow {
+        display: none;
+    }
+    :global([data-style="flat"]) .mouse-body {
+        filter: none;
+        fill: color-mix(in oklab, var(--color-base-content) 7%, transparent);
+    }
+    :global([data-style="flat"]) .knob {
+        fill: color-mix(in oklab, var(--color-base-content) 12%, transparent);
+    }
+    :global([data-style="flat"]) .mouse-sheen {
+        display: none;
+    }
+    :global([data-style="flat"]) .plate.sel,
+    :global([data-style="flat"]) .knob.sel {
+        filter: none;
+    }
+    :global([data-style="flat"]) .extra-led-dot {
+        box-shadow: none;
+    }
+    :global([data-style="flat"]) .led-ring,
+    :global([data-style="flat"]) .led-ring.hot,
+    :global([data-style="flat"]) .led-ring.sel,
+    :global([data-style="flat"]) .led-logo-core,
+    :global([data-style="flat"]) .led-logo.sel {
+        filter: none;
+    }
+
     .mouse-channel {
         fill: oklch(0 0 0 / 0.28);
         stroke: oklch(0 0 0 / 0.35);
@@ -488,13 +519,13 @@
         stroke-width: 1.2;
     }
     .plate.hot {
-        fill: oklch(0.74 0.16 248 / 0.10);
-        stroke: oklch(0.74 0.16 248 / 0.45);
+        fill: color-mix(in oklab, var(--color-primary) 10%, transparent);
+        stroke: color-mix(in oklab, var(--color-primary) 45%, transparent);
     }
     .plate.sel {
-        fill: oklch(0.74 0.16 248 / 0.16);
-        stroke: oklch(0.74 0.16 248 / 0.85);
-        filter: drop-shadow(0 0 10px oklch(0.74 0.16 248 / 0.5));
+        fill: color-mix(in oklab, var(--color-primary) 16%, transparent);
+        stroke: color-mix(in oklab, var(--color-primary) 85%, transparent);
+        filter: drop-shadow(0 0 10px color-mix(in oklab, var(--color-primary) 50%, transparent));
     }
 
     .knob {
@@ -514,11 +545,11 @@
 
     .knob.hot,
     .wheel-zone:hover .knob {
-        stroke: oklch(0.74 0.16 248 / 0.6);
+        stroke: color-mix(in oklab, var(--color-primary) 60%, transparent);
     }
     .knob.sel {
-        stroke: oklch(0.74 0.16 248);
-        filter: drop-shadow(0 0 8px oklch(0.74 0.16 248 / 0.6));
+        stroke: var(--color-primary);
+        filter: drop-shadow(0 0 8px color-mix(in oklab, var(--color-primary) 60%, transparent));
     }
 
     .wheel-ridge {
@@ -540,7 +571,7 @@
     .led-ring.sel {
         stroke-width: 3.5;
         filter: drop-shadow(0 0 10px var(--led))
-            drop-shadow(0 0 4px oklch(0.74 0.16 248 / 0.8));
+            drop-shadow(0 0 4px color-mix(in oklab, var(--color-primary) 80%, transparent));
     }
 
     .led-logo-ring {
@@ -559,7 +590,7 @@
         opacity: 1;
     }
     .led-logo.sel {
-        filter: drop-shadow(0 0 6px oklch(0.74 0.16 248 / 0.7));
+        filter: drop-shadow(0 0 6px color-mix(in oklab, var(--color-primary) 70%, transparent));
     }
 
     .led-off {
@@ -623,20 +654,20 @@
     .callout:hover .callout-line,
     .callout.hot .callout-line,
     .callout.sel .callout-line {
-        stroke: oklch(0.74 0.16 248 / 0.6);
+        stroke: color-mix(in oklab, var(--color-primary) 60%, transparent);
     }
     .callout:hover .callout-dot,
     .callout.hot .callout-dot,
     .callout.sel .callout-dot {
-        fill: oklch(0.74 0.16 248);
+        fill: var(--color-primary);
     }
     .callout:hover .callout-role,
     .callout.hot .callout-role,
     .callout.sel .callout-role {
-        fill: oklch(0.74 0.16 248 / 0.8);
+        fill: color-mix(in oklab, var(--color-primary) 80%, transparent);
     }
     .callout.sel .callout-map {
-        fill: oklch(0.88 0.08 248);
+        fill: color-mix(in oklab, var(--color-primary) 55%, white);
     }
 
     /* ── Extras & stats ─────────────────────────────────────── */
