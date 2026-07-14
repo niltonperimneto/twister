@@ -235,6 +235,7 @@
 
                 <!-- Top sheen -->
                 <ellipse
+                    class="mouse-sheen"
                     cx="280" cy="60" rx="150" ry="90"
                     fill="url(#mv-sheen)"
                     pointer-events="none"
@@ -471,6 +472,20 @@
     }
     :global([data-style="flat"]) .mouse-body {
         filter: none;
+        fill: color-mix(in oklab, var(--color-base-content) 7%, transparent);
+    }
+    :global([data-style="flat"]) .knob {
+        fill: color-mix(in oklab, var(--color-base-content) 12%, transparent);
+    }
+    :global([data-style="flat"]) .mouse-sheen {
+        display: none;
+    }
+    :global([data-style="flat"]) .plate.sel,
+    :global([data-style="flat"]) .knob.sel {
+        filter: none;
+    }
+    :global([data-style="flat"]) .extra-led-dot {
+        box-shadow: none;
     }
     :global([data-style="flat"]) .led-ring,
     :global([data-style="flat"]) .led-ring.hot,

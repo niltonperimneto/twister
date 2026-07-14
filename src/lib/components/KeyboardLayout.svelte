@@ -86,8 +86,8 @@
                 height: {key.h * UNIT - GAP}px;
                 transform: rotate({key.r}deg);
                 transform-origin: {(key.rx - key.x) * UNIT}px {(key.ry - key.y) * UNIT}px;
-                --key-x: ${key.x};
-                --key-y: ${key.y};
+                --key-x: {key.x};
+                --key-y: {key.y};
             "
         >
             <span class="kbd-cap-label">{key.label}</span>
@@ -160,6 +160,25 @@
         box-shadow: none;
         backdrop-filter: none;
         -webkit-backdrop-filter: none;
+    }
+
+    /* Flat HIG themes: keycaps become plain solid buttons (Adwaita-wash
+       fills), the selected cap keeps its ring but loses the bloom, and
+       LED effects keep their colors while the decorative glow is toned
+       down — mirroring the mouse visualizer's flat LED handling. */
+    :global([data-style="flat"]) .kbd-cap {
+        background: color-mix(in oklab, var(--color-base-content) 10%, transparent);
+        box-shadow: none;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+    }
+    :global([data-style="flat"]) .kbd-cap:hover {
+        background: color-mix(in oklab, var(--color-base-content) 15%, transparent);
+        box-shadow: none;
+    }
+    :global([data-style="flat"]) .kbd-cap-selected {
+        background: color-mix(in oklab, var(--color-primary) 40%, var(--color-base-300)) !important;
+        box-shadow: 0 0 0 2px color-mix(in oklab, var(--color-primary) 70%, transparent) !important;
     }
 
     .kbd-cap {
