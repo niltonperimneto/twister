@@ -76,6 +76,17 @@
         );
     }
 
+    /* On GNOME the sidebar toggle is an AdwOverlaySplitView-style drawer:
+       the same collapsed state fully hides the sidebar instead of shrinking
+       it to the icon rail. Other themes keep the rail. Reacts live to a
+       theme switch (twister_sidebar_collapsed reads as "rail" elsewhere,
+       "hidden" here). Intro mode ignores it so the chooser morph is intact. */
+    let sidebarHidden = $derived(
+        !introMode &&
+            sidebarCollapsed &&
+            themeStore.resolvedId === "libadwaita",
+    );
+
     /* Global ambient glow color derived from the first LED, with a
        fallback so every device gets a consistent glow even without LEDs
        or when the LED color is too dark to produce a visible glow */
@@ -224,6 +235,7 @@
             activeKind={activeDeviceKind}
             {currentView}
             collapsed={sidebarCollapsed}
+            hidden={sidebarHidden}
             intro={introMode}
             onSelectDevice={(path) => {
                 manualKind = "mouse";

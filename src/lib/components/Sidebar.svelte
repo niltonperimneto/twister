@@ -25,6 +25,9 @@
         activeKind: "mouse" | "keyboard";
         currentView: View;
         collapsed: boolean;
+        /* GNOME drawer mode: fully hide the sidebar (w-0) rather than
+           collapse to the icon rail. Driven by the same toggle. */
+        hidden?: boolean;
         intro: boolean;
         onSelectDevice: (path: string) => void;
         onSelectKeyboard: (id: string) => void;
@@ -41,6 +44,7 @@
         activeKind,
         currentView,
         collapsed,
+        hidden = false,
         intro,
         onSelectDevice,
         onSelectKeyboard,
@@ -117,15 +121,21 @@
 </script>
 
 <aside
-    class="{intro ? 'w-56' : collapsed ? 'w-14' : 'w-56'} shrink-0 relative overflow-hidden"
+    class="{intro ? 'w-56' : hidden ? 'w-0' : collapsed ? 'w-14' : 'w-56'} shrink-0 relative overflow-hidden"
+    inert={hidden}
     style="
         flex-grow: {intro ? 1 : 0};
-        border-right: 1px solid {intro
-        ? 'transparent'
-        : 'color-mix(in oklab, var(--color-base-content) 6%, transparent)'};
+        margin-right: {hidden ? '-0.5rem' : '0'};
+        border-right: {hidden
+        ? 'none'
+        : '1px solid ' +
+          (intro
+              ? 'transparent'
+              : 'color-mix(in oklab, var(--color-base-content) 6%, transparent)')};
         transition:
             flex-grow var(--dur-slow) var(--ease-out),
             width var(--dur-fast) var(--ease-out),
+            margin-right var(--dur-fast) var(--ease-out),
             border-color var(--dur-slow) var(--ease-out);
     "
 >
