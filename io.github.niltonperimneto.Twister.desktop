@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Twister
+Comment=Configure gaming mice on Linux
+Exec=twister
+Icon=io.github.niltonperimneto.Twister
+Type=Application
+Categories=Settings;HardwareSettings;
+Keywords=mouse;gaming;dpi;ratbag;configuration;
+StartupWMClass=twister

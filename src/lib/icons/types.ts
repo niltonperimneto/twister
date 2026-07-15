@@ -36,6 +36,7 @@ export const ICON_NAMES = [
   'alert-circle',
   'star',
   'user-plus',
+  'target',
 ] as const;
 
 export type IconName = (typeof ICON_NAMES)[number];

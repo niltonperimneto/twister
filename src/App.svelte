@@ -16,6 +16,7 @@
     import type { IconName } from "$lib/icons";
     import MouseVisualizer from "$lib/components/MouseVisualizer.svelte";
     import DpiEditor from "$lib/components/DpiEditor.svelte";
+    import PollingRateSelector from "$lib/components/PollingRateSelector.svelte";
     import ButtonMapper from "$lib/components/ButtonMapper.svelte";
     import LedEditor from "$lib/components/LedEditor.svelte";
     import StatusOverlay from "$lib/components/StatusOverlay.svelte";
@@ -23,6 +24,7 @@
     import DonatePage from "$lib/components/DonatePage.svelte";
     import KeyboardEditor from "$lib/components/KeyboardEditor.svelte";
     import KeyboardStatusNotice from "$lib/components/KeyboardStatusNotice.svelte";
+    import { profileHasLeds } from "$lib/mouse/leds";
 
     const store = deviceStore;
     const kb = keyboardStore;
@@ -74,29 +76,38 @@
         );
     }
 
+    /* On GNOME the sidebar toggle is an AdwOverlaySplitView-style drawer:
+       the same collapsed state fully hides the sidebar instead of shrinking
+       it to the icon rail. Other themes keep the rail. Reacts live to a
+       theme switch (twister_sidebar_collapsed reads as "rail" elsewhere,
+       "hidden" here). Intro mode ignores it so the chooser morph is intact. */
+    let sidebarHidden = $derived(
+        !introMode &&
+            sidebarCollapsed &&
+            themeStore.resolvedId === "libadwaita",
+    );
+
     /* Global ambient glow color derived from the first LED, with a
        fallback so every device gets a consistent glow even without LEDs
        or when the LED color is too dark to produce a visible glow */
-    const DEFAULT_GLOW = "rgb(120,160,255)";
+    const DEFAULT_GLOW = "var(--color-primary)";
     let ambientGlow: string | null = $derived.by(() => {
         if (!store.activeDevice) return null;
         const led0 = store.activeProfile?.leds?.[0];
-        if (!led0) return DEFAULT_GLOW;
+        if (!led0 || !hasLeds) return DEFAULT_GLOW;
         const { r, g, b } = led0.color;
         if (r + g + b < 30) return DEFAULT_GLOW;
         return `rgb(${r},${g},${b})`;
     });
 
     const allTabs: { id: Tab; label: string; icon: IconName }[] = [
-        { id: "dpi", label: "DPI", icon: "chevrons-right" },
+        { id: "dpi", label: "DPI", icon: "gauge" },
         { id: "buttons", label: "Buttons", icon: "mouse" },
         { id: "leds", label: "Lighting", icon: "sun" },
     ];
 
     let hasLeds = $derived(
-        store.activeProfile?.leds?.some((l) =>
-            l.modes.some((m) => m !== 0) || (l.modes.length === 0 && l.mode !== 0),
-        ) ?? false,
+        store.activeProfile ? profileHasLeds(store.activeProfile) : false,
     );
     let tabs = $derived(hasLeds ? allTabs : allTabs.filter((t) => t.id !== "leds"));
 
@@ -224,6 +235,7 @@
             activeKind={activeDeviceKind}
             {currentView}
             collapsed={sidebarCollapsed}
+            hidden={sidebarHidden}
             intro={introMode}
             onSelectDevice={(path) => {
                 manualKind = "mouse";
@@ -281,7 +293,7 @@
                             <!-- Context header — device identity, profiles, Apply -->
                             <header
                                 class="flex items-center gap-3 px-4 pt-3 pb-2.5 shrink-0"
-                                style="border-bottom: 1px solid oklch(1 0 0 / 0.05);"
+                                style="border-bottom: 1px solid color-mix(in oklab, var(--color-base-content) 5%, transparent);"
                             >
                                 <Icon
                                     name={activeDeviceKind}
@@ -401,7 +413,7 @@
 
                                     <!-- Right: Tabs + editor panels, capped on wide windows -->
                                     <div
-                                        class="w-[46%] min-w-[360px] max-w-[720px] shrink-0 flex flex-col overflow-hidden"
+                                        class="w-[52%] min-w-[380px] max-w-[880px] shrink-0 flex flex-col overflow-hidden"
                                     >
                                         <!-- Tab bar -->
                                         <div
@@ -426,6 +438,15 @@
                                                     </button>
                                                 {/each}
                                             </div>
+                                        </div>
+
+                                        <!-- Polling rate — its own category, visible on every tab -->
+                                        <div class="px-4 pb-1 shrink-0">
+                                            <PollingRateSelector
+                                                profile={store.activeProfile}
+                                                onUpdated={() =>
+                                                    store.refresh()}
+                                            />
                                         </div>
 
                                         <!-- Tab content with fade transition -->

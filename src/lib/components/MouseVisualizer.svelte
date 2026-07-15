@@ -8,6 +8,7 @@
     import type { ProfileDto, ButtonDto, LedDto } from "$lib/types";
     import { LED_MODES } from "$lib/types";
     import { formatButtonAction } from "$lib/mouse/actions";
+    import { profileHasLeds } from "$lib/mouse/leds";
 
     interface Props {
         profile: ProfileDto;
@@ -33,8 +34,10 @@
 
     const button = (i: number): ButtonDto | undefined =>
         profile.buttons.find((b) => b.index === i);
+    /* LED-less mice get no LED zones/callouts at all. */
+    let showLeds = $derived(profileHasLeds(profile));
     const led = (i: number): LedDto | undefined =>
-        profile.leds.find((l) => l.index === i);
+        showLeds ? profile.leds.find((l) => l.index === i) : undefined;
 
     function mappingFor(id: string): string {
         if (id.startsWith("button")) {
@@ -83,7 +86,9 @@
 
     /* Buttons/LEDs with no home on the generic silhouette get a chip row. */
     let extraButtons = $derived(profile.buttons.filter((b) => b.index > 5));
-    let extraLeds = $derived(profile.leds.filter((l) => l.index > 1));
+    let extraLeds = $derived(
+        showLeds ? profile.leds.filter((l) => l.index > 1) : [],
+    );
 
     /* ── LED presentation ────────────────────────────────────── */
 
@@ -131,7 +136,7 @@
              tinted by the device's LEDs (mirrors the keyboard underglow) -->
         <div
             class="mouse-underglow"
-            style="--glow: {ambientColor ?? 'rgb(120,160,255)'}"
+            style="--glow: {ambientColor ?? 'var(--color-primary)'}"
             aria-hidden="true"
         ></div>
 
