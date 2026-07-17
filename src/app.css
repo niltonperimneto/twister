@@ -832,15 +832,147 @@ code, kbd, samp, pre {
 /* Per-HIG details                                                     */
 /* ------------------------------------------------------------------ */
 
-/* GNOME HIG: bold button labels, pressed = currentColor 30% */
+/* GNOME split view: sidebar flush against headerbar and window edges,
+   in its own sidebar_bg grey, split off by the headerbar shade line */
+[data-theme="libadwaita"] {
+    --sidebar-border: oklch(0 0 0 / 0.36); /* $headerbar_shade_color */
+}
+
+[data-theme="libadwaita"] .content-row {
+    padding: 0;
+    gap: 0;
+}
+
+[data-theme="libadwaita"] .sidebar-aside {
+    background: var(--color-base-100);
+}
+
+/* GNOME sidebar rows: neutral currentColor washes, bare symbolic icons
+   (no chips, no accent tint), no press-scale */
+[data-theme="libadwaita"] .sidebar-item:hover {
+    background: color-mix(in srgb, currentColor 7%, transparent);
+    color: var(--color-base-content);
+}
+
+[data-theme="libadwaita"] .sidebar-item:active {
+    background: color-mix(in srgb, currentColor 10%, transparent);
+    transform: none;
+}
+
+[data-theme="libadwaita"] .sidebar-item svg,
+[data-theme="libadwaita"] .sidebar-item:hover svg {
+    color: inherit;
+    opacity: 0.9;
+}
+
+[data-theme="libadwaita"] .icon-chip,
+[data-theme="libadwaita"] .sidebar-item:hover .icon-chip,
+[data-theme="libadwaita"] .icon-chip-active {
+    background: transparent;
+    box-shadow: none;
+}
+
+[data-theme="libadwaita"] .sidebar-home {
+    background: transparent;
+}
+
+[data-theme="libadwaita"] .sidebar-home:hover {
+    background: color-mix(in srgb, currentColor 7%, transparent);
+}
+
+[data-theme="libadwaita"] .sidebar-heading {
+    color: color-mix(in srgb, var(--color-base-content) 55%, transparent);
+}
+
+/* GNOME HIG: bold flat buttons, currentColor washes 10/15/30, 34px tall */
 [data-theme="libadwaita"] .btn,
 [data-theme="libadwaita"] .pill-btn {
     font-weight: 700;
 }
 
+[data-theme="libadwaita"] .btn {
+    min-height: 34px;
+    padding-inline: 17px;
+    border: none;
+}
+
+[data-theme="libadwaita"] .btn:hover {
+    background: var(--button-bg-hover);
+}
+
 [data-theme="libadwaita"] .btn:active {
     background: color-mix(in srgb, currentColor 30%, transparent);
     transform: none;
+}
+
+/* Suggested-action: solid accent; hover/active lay a white image over
+   the accent (must come after the generic :active rule in the cascade) */
+[data-theme="libadwaita"] .btn-primary {
+    background: var(--color-primary);
+    color: var(--color-primary-content);
+}
+
+[data-theme="libadwaita"] .btn-primary:hover {
+    background: color-mix(in srgb, white 10%, var(--color-primary));
+}
+
+[data-theme="libadwaita"] .btn-primary:active {
+    background: color-mix(in srgb, white 25%, var(--color-primary));
+}
+
+/* Flat (.flat) button: transparent, 7% hover, 16% pressed */
+[data-theme="libadwaita"] .btn-ghost {
+    background: transparent;
+    color: var(--color-base-content);
+}
+
+[data-theme="libadwaita"] .btn-ghost:hover {
+    background: color-mix(in srgb, currentColor 7%, transparent);
+    color: var(--color-base-content);
+}
+
+[data-theme="libadwaita"] .btn-ghost:active {
+    background: color-mix(in srgb, currentColor 16%, transparent);
+}
+
+/* Toggle-group pills: borderless flat toggles, checked = 10% wash */
+[data-theme="libadwaita"] .pill-btn {
+    border-color: transparent;
+    background: transparent;
+    color: color-mix(in srgb, var(--color-base-content) 80%, transparent);
+}
+
+[data-theme="libadwaita"] .pill-btn:hover {
+    border-color: transparent;
+    background: color-mix(in srgb, currentColor 7%, transparent);
+}
+
+[data-theme="libadwaita"] .pill-btn:active {
+    transform: none;
+    background: color-mix(in srgb, currentColor 16%, transparent);
+}
+
+[data-theme="libadwaita"] .pill-btn-active,
+[data-theme="libadwaita"] .pill-btn-active:hover {
+    border-color: transparent;
+    background: color-mix(in srgb, currentColor 10%, transparent);
+    color: var(--color-base-content);
+}
+
+/* Adwaita focus ring: 2px half-alpha accent at 2px offset; widgets keep
+   their own radius (the global :focus-visible forces radius-xs) */
+[data-theme="libadwaita"] :focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--color-primary) 50%, transparent);
+    outline-offset: 2px;
+}
+
+[data-theme="libadwaita"] .btn:focus-visible,
+[data-theme="libadwaita"] .pill-btn:focus-visible {
+    border-radius: var(--radius-button);
+}
+
+[data-theme="libadwaita"] .sidebar-item:focus-visible {
+    border-radius: var(--radius-md);
 }
 
 /* Kirigami HIG: Breeze focus is a thin accent outline hugging the frame */

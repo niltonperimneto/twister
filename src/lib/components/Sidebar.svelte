@@ -121,21 +121,21 @@
 </script>
 
 <aside
-    class="{intro ? 'w-56' : hidden ? 'w-0' : collapsed ? 'w-14' : 'w-56'} shrink-0 relative overflow-hidden"
+    class="{intro ? 'w-56' : hidden ? 'w-0' : collapsed ? 'w-14' : 'w-56'} {intro
+        ? ''
+        : 'sidebar-aside'} shrink-0 relative overflow-hidden"
     inert={hidden}
     style="
         flex-grow: {intro ? 1 : 0};
-        margin-right: {hidden ? '-0.5rem' : '0'};
         border-right: {hidden
         ? 'none'
         : '1px solid ' +
           (intro
               ? 'transparent'
-              : 'color-mix(in oklab, var(--color-base-content) 6%, transparent)')};
+              : 'var(--sidebar-border, color-mix(in oklab, var(--color-base-content) 6%, transparent))')};
         transition:
             flex-grow var(--dur-slow) var(--ease-out),
             width var(--dur-fast) var(--ease-out),
-            margin-right var(--dur-fast) var(--ease-out),
             border-color var(--dur-slow) var(--ease-out);
     "
 >

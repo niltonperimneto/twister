@@ -53,6 +53,7 @@ export const cosmic: Theme = {
       'color-mix(in oklab, var(--color-primary) 25%, var(--color-base-content))',
 
     'font-ui': "'Inter', system-ui, sans-serif",
+    'font-display': "'Inter', system-ui, sans-serif",
 
     'backdrop-blur': 'blur(12px) saturate(1.2)',
     'glass-inset': 'inset 0 1px 0 0 oklch(1 0 0 / 0.06)',

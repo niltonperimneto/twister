@@ -51,6 +51,7 @@ export const breeze: Theme = {
     'selection-fg': 'var(--color-primary-content)',
 
     'font-ui': "'Noto Sans', 'Inter', system-ui, sans-serif",
+    'font-display': "'Inter', system-ui, sans-serif",
 
     'backdrop-blur': 'none',
     'glass-inset': 'none',

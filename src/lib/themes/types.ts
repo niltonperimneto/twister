@@ -64,6 +64,8 @@ export interface ThemeTokens {
 
   /* UI font stack per HIG (Noto Sans / Adwaita Sans / Inter) */
   'font-ui': string;
+  /* Display/heading font (headings, sidebar headings, wordmark) */
+  'font-display': string;
 
   /* Glass compositing — "none" for both yields a flat theme */
   'backdrop-blur': string;

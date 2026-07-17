@@ -226,7 +226,7 @@
 >
     <Titlebar onToggleSidebar={toggleSidebar} {isMaximized} />
 
-    <div class="flex flex-1 min-h-0 p-2 gap-2">
+    <div class="content-row flex flex-1 min-h-0 p-2 gap-2">
         <Sidebar
             devices={store.devices}
             activeDevice={store.activeDevice}

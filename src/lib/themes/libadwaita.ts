@@ -52,6 +52,7 @@ export const libadwaita: Theme = {
     'selection-fg': 'var(--color-base-content)',
 
     'font-ui': "'Adwaita Sans', 'Cantarell', 'Inter', system-ui, sans-serif",
+    'font-display': "'Adwaita Sans', 'Cantarell', 'Inter', system-ui, sans-serif",
 
     'backdrop-blur': 'none',
     'glass-inset': 'none',

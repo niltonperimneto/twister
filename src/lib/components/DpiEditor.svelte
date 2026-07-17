@@ -202,6 +202,24 @@
     border-color: transparent;
   }
 
+  /* Adwaita linked-button group: borderless, 10% wash at rest, 15% hover */
+  :global([data-theme="libadwaita"]) .stage-pill {
+    border-color: transparent;
+    background: color-mix(in srgb, currentColor 10%, transparent);
+  }
+
+  :global([data-theme="libadwaita"]) .stage-pill:hover {
+    border-color: transparent;
+    background: color-mix(in srgb, currentColor 15%, transparent);
+  }
+
+  :global([data-theme="libadwaita"]) .stage-pill-editing,
+  :global([data-theme="libadwaita"]) .stage-pill-editing:hover {
+    border-color: transparent;
+    background: color-mix(in srgb, currentColor 10%, transparent);
+    color: var(--color-base-content);
+  }
+
   .stage-pill-radio {
     display: inline-flex;
     align-items: center;
