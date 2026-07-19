@@ -14,7 +14,11 @@ permissions:
 jobs:
   build-appimage:
     runs-on: ubuntu-latest
-    container: fedora:43
+    container: fedora:44
+    env:
+      # `secrets` is not allowed in `if:` expressions, so mirror its presence
+      # into an env var the signing steps can test.
+      HAS_SIGNING_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY != '' }}
 
     steps:
       - name: Install system dependencies
@@ -185,7 +189,7 @@ jobs:
           } > release_notes.md
 
       - name: Sign AppImage (Tauri updater)
-        if: startsWith(github.ref, 'refs/tags/') && secrets.TAURI_SIGNING_PRIVATE_KEY != ''
+        if: startsWith(github.ref, 'refs/tags/') && env.HAS_SIGNING_KEY == 'true'
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
@@ -197,7 +201,7 @@ jobs:
           ls -la "${APPIMAGE}" "${APPIMAGE}.sig"
 
       - name: Emit latest.json (Tauri updater manifest)
-        if: startsWith(github.ref, 'refs/tags/') && secrets.TAURI_SIGNING_PRIVATE_KEY != ''
+        if: startsWith(github.ref, 'refs/tags/') && env.HAS_SIGNING_KEY == 'true'
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
           BUNDLE=src-tauri/target/release/bundle/appimage

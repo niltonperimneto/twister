@@ -42,7 +42,7 @@
       "endpoints": [
         "https://github.com/niltonperimneto/twister/releases/latest/download/latest.json"
       ],
-      "pubkey": "REPLACE_WITH_PUBLIC_KEY_FROM_tauri_signer_generate"
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IERBRjVERERBNDc2Rjk5NQpSV1NWK1hhazNWMnZEV1hramdOSGVvTnlpRDk3RXZkQTV5bkVvOWtnY1VweUFFZEJQZ2txR3dKcgo="
     }
   }
 }
