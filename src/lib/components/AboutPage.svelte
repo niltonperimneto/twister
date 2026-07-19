@@ -6,8 +6,6 @@
     import auraLogo from "$lib/assets/aura-logo.svg";
     import { openUrl } from "$lib/ipc/commands";
     import { updaterStore } from "$lib/stores/updater.svelte";
-    import { themeStore } from "$lib/stores/theme.svelte";
-    import { themeList, themes } from "$lib/themes";
     import Icon from "./Icon.svelte";
 
     const updater = updaterStore;
@@ -26,14 +24,6 @@
 
     let version: string = $state("");
     getVersion().then((v) => (version = v));
-
-    function handleThemeChange(e: Event) {
-        themeStore.setTheme((e.target as HTMLSelectElement).value);
-    }
-
-    function handleFollowAccentChange(e: Event) {
-        themeStore.setFollowSystemAccent((e.target as HTMLInputElement).checked);
-    }
 </script>
 
 <div
@@ -179,57 +169,6 @@
                                 </span>
                             </div>
                         {/if}
-                    </div>
-                </div>
-
-                <!-- Preferences Collapse -->
-                <div class="collapse collapse-arrow bg-base-300/35 border border-base-content/5 rounded-lg text-left">
-                    <input type="checkbox" id="preferences-collapse-toggle" class="peer" checked />
-                    <div class="collapse-title text-[11px] font-semibold py-2.5 px-4 flex items-center gap-2">
-                        <Icon name="settings" class="w-3.5 h-3.5 text-base-content/60" />
-                        App Preferences
-                    </div>
-                    <div class="collapse-content px-4 pb-3 flex flex-col gap-2">
-                        <div class="flex items-center justify-between py-1 border-b border-base-content/5">
-                            <div class="flex flex-col">
-                                <span class="text-xs font-medium text-base-content/85">Theme</span>
-                                <span class="text-[9px] text-base-content/40">
-                                    {#if themeStore.selection === "system"}
-                                        Follows your desktop environment — detected: {themes[themeStore.resolvedId]?.name ?? themeStore.resolvedId}
-                                    {:else}
-                                        {themes[themeStore.resolvedId]?.description ?? ""}
-                                    {/if}
-                                </span>
-                            </div>
-                            <select
-                                class="select select-xs bg-base-300/50 border border-base-content/10 rounded-md cursor-pointer text-xs"
-                                value={themeStore.selection}
-                                onchange={handleThemeChange}
-                            >
-                                <option value="system">System (auto)</option>
-                                {#each themeList as theme (theme.id)}
-                                    <option value={theme.id}>{theme.name}</option>
-                                {/each}
-                            </select>
-                        </div>
-                        <div class="flex items-center justify-between py-1">
-                            <div class="flex flex-col">
-                                <span class="text-xs font-medium text-base-content/85">Follow system accent</span>
-                                <span class="text-[9px] text-base-content/40">
-                                    {#if themeStore.systemAccent}
-                                        Re-tints the theme with your desktop's accent color
-                                    {:else}
-                                        No system accent detected — using the theme's own accent
-                                    {/if}
-                                </span>
-                            </div>
-                            <input
-                                type="checkbox"
-                                class="toggle toggle-primary toggle-xs cursor-pointer"
-                                checked={themeStore.followSystemAccent}
-                                onchange={handleFollowAccentChange}
-                            />
-                        </div>
                     </div>
                 </div>
 

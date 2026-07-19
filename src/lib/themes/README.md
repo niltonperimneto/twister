@@ -37,7 +37,12 @@ from the upstream sources of truth:
 
 ## Selection
 
-The persisted choice lives in `localStorage` under `twister_theme`:
+The persisted state (selection + accent preference + the custom
+`ThemeConfig`, see below) lives in `theme-config.json` in the app data
+dir, written through `@tauri-apps/plugin-fs`, with a synchronous
+`localStorage` mirror under `twister_theme_state` that `preload()`
+reads before the first paint (the pre-engine `twister_theme` /
+`twister_follow_system_accent` keys are migrated on first run):
 
 - `"system"` (the default when unset) re-detects the desktop
   environment on every launch via the `detect_desktop_environment`
@@ -45,12 +50,30 @@ The persisted choice lives in `localStorage` under `twister_theme`:
   COSMIC → `cosmic`, GNOME → `libadwaita`, anything else →
   `DEFAULT_THEME_ID`.
 - Any explicit theme id is sticky until the user changes it in
-  **About → App Preferences → Theme**.
+  **Appearance** (sidebar).
+- `"custom"` compiles its tokens at runtime from the 8-axis
+  `ThemeConfig` instead of a hand-crafted map (see below).
+
+## Custom themes (the 8-axis engine)
+
+`config.ts` defines `ThemeConfig` — `colorScheme` (light/dark/system,
+OS-synced via the Tauri window API), `density`, `fontSize`,
+`baseColor`, `highlightColor`, `iconTheme`, `roundness`,
+`translucency`. `compile.ts` turns a config into the exact
+`ThemeTokens` shape the presets declare (surfaces derived from
+`baseColor` with a per-scheme lightness ladder, WCAG-contrast-enforced
+primary from `highlightColor`; color math in `color.ts`), so the store
+applies it through the same token loop. `density`/`fontSize` compile
+separately and apply globally — over presets too — via Tailwind 4's
+`--spacing` unit and the root `--font-base`. Editing any palette axis
+while a preset is active forks the selection to `"custom"`. Configs
+import/export as validated `.json` through the dialog + fs plugins
+(`io.ts`); the panel lives on the sidebar's **Appearance** page.
 
 ## System accent following
 
 On top of the theme tokens sits an optional accent override
-(**About → App Preferences → Follow system accent**, on by default,
+(**Appearance → Follow system accent**, on by default,
 persisted as `twister_follow_system_accent`). The Rust backend reads
 `org.freedesktop.appearance/accent-color` from the XDG Desktop Portal
 (`watch_system_accent` command) and re-emits live changes as

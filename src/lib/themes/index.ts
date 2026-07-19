@@ -22,3 +22,5 @@ export const themes: Readonly<Record<ThemeId, Theme>> = {
 export const themeList: Theme[] = Object.values(themes);
 
 export * from './types';
+export * from './config';
+export * from './compile';

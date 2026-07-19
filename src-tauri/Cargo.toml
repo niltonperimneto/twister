@@ -1,6 +1,6 @@
 [package]
 name = "twister"
-version = "0.1.6"
+version = "1.0.0"
 edition = "2024"
 description = "Twister — desktop-agnostic gaming mouse configuration GUI for Linux"
 license = "GPL-3.0-or-later"
@@ -15,6 +15,8 @@ tauri = { version = "2.11", features = ["custom-protocol"] }
 tauri-plugin-shell = "2.3"
 tauri-plugin-updater = "2"
 tauri-plugin-process = "2"
+tauri-plugin-fs = "2"
+tauri-plugin-dialog = "2"
 serde = { version = "1.0", features = ["derive"] }
 # Not imported by our code, but tauri::generate_context! expands to
 # `::serde_json` paths in this crate — removing it breaks the build.

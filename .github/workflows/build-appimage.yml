@@ -193,7 +193,7 @@ jobs:
           APPIMAGE=$(ls src-tauri/target/release/bundle/appimage/Twister_*_amd64.AppImage)
           # `tauri signer sign` writes "$APPIMAGE.sig" beside the AppImage and
           # picks up the key + password from the env vars above.
-          npx --yes @tauri-apps/cli signer sign "$APPIMAGE"
+          cargo tauri signer sign "$APPIMAGE"
           ls -la "${APPIMAGE}" "${APPIMAGE}.sig"
 
       - name: Emit latest.json (Tauri updater manifest)

@@ -19,7 +19,7 @@
 
 project(
     'twister',
-    version: '0.1.6',
+    version: '1.0.0',
     license: 'GPL-3.0-or-later',
     meson_version: '>= 0.59.0',
 )

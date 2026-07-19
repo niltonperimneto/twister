@@ -21,6 +21,7 @@
     import LedEditor from "$lib/components/LedEditor.svelte";
     import StatusOverlay from "$lib/components/StatusOverlay.svelte";
     import AboutPage from "$lib/components/AboutPage.svelte";
+    import AppearancePage from "$lib/components/AppearancePage.svelte";
     import DonatePage from "$lib/components/DonatePage.svelte";
     import KeyboardEditor from "$lib/components/KeyboardEditor.svelte";
     import KeyboardStatusNotice from "$lib/components/KeyboardStatusNotice.svelte";
@@ -226,7 +227,7 @@
 >
     <Titlebar onToggleSidebar={toggleSidebar} {isMaximized} />
 
-    <div class="flex flex-1 min-h-0 p-2 gap-2">
+    <div class="content-row flex flex-1 min-h-0 p-2 gap-2">
         <Sidebar
             devices={store.devices}
             activeDevice={store.activeDevice}
@@ -279,6 +280,8 @@
                 >
                     {#if currentView === "about"}
                         <AboutPage />
+                    {:else if currentView === "appearance"}
+                        <AppearancePage />
                     {:else if currentView === "donate"}
                         <DonatePage />
                     {:else if currentView === "devices"}
