@@ -59,6 +59,13 @@
         radial-gradient(ellipse 90% 70% at 30% 60%, oklch(0.20 0.04 200 / 0.4), transparent),
         radial-gradient(ellipse 50% 90% at 70% 70%, oklch(0.23 0.045 290 / 0.35), transparent);
 
+    /* ---- Type/density scale (theme engine: fontSize + density) ----
+       --font-base scales every rem in the app via the html rule below;
+       --spacing is Tailwind 4's global spacing unit, overridden inline
+       by the theme store (compact 0.2rem / comfortable 0.25rem /
+       spacious 0.3rem). */
+    --font-base: 1rem;
+
     /* ---- Motion tokens (mirrored in src/lib/motion.ts) ---- */
     --dur-fast: 150ms;
     --dur-base: 250ms;
@@ -93,6 +100,11 @@
     );
     --selection-fg: color-mix(in oklab, var(--color-primary) 25%, var(--color-base-content));
     --font-ui: var(--font-sans);
+}
+
+/* rem root — the fontSize axis rescales the whole app through this */
+html {
+    font-size: var(--font-base);
 }
 
 html,

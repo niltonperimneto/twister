@@ -3,6 +3,8 @@
  * The XDG portal reports the accent as three sRGB doubles in 0–1;
  * out-of-range components mean "no preference" per the spec. */
 
+import { relativeLuminance } from './color';
+
 export type AccentRgb = [number, number, number];
 
 /** Portal triple → CSS color string, or null when invalid/no preference. */
@@ -19,9 +21,6 @@ export function accentToCss(
  *  between near-white and near-black (contrast(white) > contrast(black)
  *  exactly when L < 0.1791). */
 export function accentContentColor(rgb: AccentRgb): string {
-  const lin = (c: number) =>
-    c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
-  const luminance =
-    0.2126 * lin(rgb[0]) + 0.7152 * lin(rgb[1]) + 0.0722 * lin(rgb[2]);
+  const luminance = relativeLuminance({ r: rgb[0], g: rgb[1], b: rgb[2] });
   return luminance < 0.1791 ? 'oklch(0.98 0 0)' : 'oklch(0.2 0.01 260)';
 }

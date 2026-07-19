@@ -11,9 +11,10 @@ import type { IconSetId } from '$lib/icons/types';
 
 export type ThemeId = string;
 
-/** Persisted user choice: an explicit theme id, or "system" to
- *  re-detect the desktop environment on every launch. */
-export type ThemeSelection = 'system' | ThemeId;
+/** Persisted user choice: an explicit theme id, "system" to re-detect
+ *  the desktop environment on every launch, or "custom" for a theme
+ *  compiled from the 8-axis ThemeConfig (see config.ts/compile.ts). */
+export type ThemeSelection = 'system' | 'custom' | ThemeId;
 
 export interface ThemeTokens {
   /* DaisyUI / Tailwind color tokens (override the @theme block) */

@@ -1,6 +1,6 @@
 /* Shared TypeScript types matching the Rust DTO layer exactly. */
 
-export type View = "devices" | "about" | "donate";
+export type View = "devices" | "appearance" | "about" | "donate";
 
 export type DaemonStatus =
   | { status: 'connected'; api_version: number; bus_type: 'session' | 'system' }

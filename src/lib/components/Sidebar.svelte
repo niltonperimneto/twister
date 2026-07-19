@@ -63,6 +63,7 @@
     );
 
     const bottomNav: { id: View; label: string; icon: IconName }[] = [
+        { id: "appearance", label: "Appearance", icon: "palette" },
         { id: "donate", label: "Support", icon: "heart" },
         { id: "about", label: "About", icon: "info" },
     ];

@@ -8,8 +8,22 @@
     "core:window:allow-toggle-maximize",
     "core:window:allow-close",
     "core:window:allow-start-dragging",
+    "core:window:allow-theme",
     "shell:allow-open",
     "updater:default",
-    "process:default"
+    "process:default",
+    "dialog:allow-open",
+    "dialog:allow-save",
+    "fs:allow-mkdir",
+    "fs:allow-read-text-file",
+    "fs:allow-write-text-file",
+    {
+      "identifier": "fs:scope",
+      "allow": [
+        { "path": "$APPDATA" },
+        { "path": "$APPDATA/**" },
+        { "path": "$HOME/**" }
+      ]
+    }
   ]
 }
